@@ -3,7 +3,7 @@ package com.example.chatapp.presentation.viewModel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.chatapp.data.remote.KtorClient.RegisterResult
+import com.example.chatapp.data.util.RegisterResult
 import com.example.chatapp.domain.repository.IUserRepository
 import com.example.chatapp.presentation.viewModel.states.LoginAndRegisterStates.ErrorMessagesState
 import com.example.chatapp.presentation.viewModel.states.LoginAndRegisterStates.RegisterState

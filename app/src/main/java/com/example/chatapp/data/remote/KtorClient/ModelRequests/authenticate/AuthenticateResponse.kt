@@ -1,4 +1,4 @@
-package com.example.chatapp.data.remote.dto.authenticate
+package com.example.chatapp.data.remote.KtorClient.ModelRequests.authenticate
 
 @kotlinx.serialization.Serializable
 data class AuthenticateResponse(

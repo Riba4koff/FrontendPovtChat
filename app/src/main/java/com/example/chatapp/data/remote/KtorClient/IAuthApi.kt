@@ -2,11 +2,11 @@ package com.example.chatapp.data.remote.KtorClient
 
 import com.example.chatapp.data.remote.KtorClient.ModelRequests.EditUserInfo.EditUserInfoRequest
 import com.example.chatapp.data.remote.KtorClient.ModelRequests.EditUserInfo.EditUserInfoResponse
-import com.example.chatapp.data.remote.dto.authenticate.AuthenticateResponse
-import com.example.chatapp.data.remote.dto.signIn.SignInRequest
-import com.example.chatapp.data.remote.dto.signIn.SignInResponse
-import com.example.chatapp.data.remote.dto.signUp.SignUpRequest
-import com.example.chatapp.data.remote.dto.signUp.SignUpResponse
+import com.example.chatapp.data.remote.KtorClient.ModelRequests.authenticate.AuthenticateResponse
+import com.example.chatapp.data.remote.KtorClient.ModelRequests.signIn.SignInRequest
+import com.example.chatapp.data.remote.KtorClient.ModelRequests.signIn.SignInResponse
+import com.example.chatapp.data.remote.KtorClient.ModelRequests.signUp.SignUpRequest
+import com.example.chatapp.data.remote.KtorClient.ModelRequests.signUp.SignUpResponse
 import com.example.chatapp.domain.models.Message
 import io.ktor.http.cio.websocket.*
 

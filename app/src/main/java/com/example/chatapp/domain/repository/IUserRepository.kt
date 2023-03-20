@@ -1,9 +1,9 @@
 package com.example.chatapp.domain.repository
 
 import com.example.chatapp.data.remote.KtorClient.ModelRequests.EditUserInfo.EditUserInfoRequest
-import com.example.chatapp.data.remote.KtorClient.ModelRequests.LoginResult
-import com.example.chatapp.data.remote.KtorClient.RegisterResult
-import com.example.chatapp.data.remote.dto.signIn.SignInResponse
+import com.example.chatapp.data.util.LoginResult
+import com.example.chatapp.data.util.RegisterResult
+import com.example.chatapp.data.remote.KtorClient.ModelRequests.signIn.SignInResponse
 import com.example.chatapp.data.util.Result
 import com.example.chatapp.domain.models.User
 

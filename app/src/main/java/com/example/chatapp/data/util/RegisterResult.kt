@@ -1,4 +1,4 @@
-package com.example.chatapp.data.remote.KtorClient
+package com.example.chatapp.data.util
 
 
 sealed class RegisterResult<T>(val data: T? = null) {

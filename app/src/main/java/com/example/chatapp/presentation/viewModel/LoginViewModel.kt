@@ -5,7 +5,7 @@ import android.content.Context
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.chatapp.data.remote.KtorClient.ModelRequests.LoginResult
+import com.example.chatapp.data.util.LoginResult
 import com.example.chatapp.domain.repository.IUserRepository
 import com.example.chatapp.presentation.viewModel.states.LoginAndRegisterStates.LoginState
 import kotlinx.coroutines.flow.MutableStateFlow

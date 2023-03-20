@@ -1,4 +1,4 @@
-package com.example.chatapp.data.remote.dto.signUp
+package com.example.chatapp.data.remote.KtorClient.ModelRequests.signUp
 
 @kotlinx.serialization.Serializable
 data class SignUpResponse(
