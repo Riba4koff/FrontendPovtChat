@@ -13,14 +13,21 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
+abstract class IChatViewModel(
+    initialState: ChatState
+) : MVIViewModel<ChatState>(initialState){
+    abstract fun connect()
+    abstract fun onMessageChange(message: String)
+    abstract fun disconnect()
+    abstract fun getAllMessages()
+    abstract fun sendMessage()
+}
+
 class ChatViewModel(
     private val messagesRepository: IMessagesRepository,
     private val chatSocketService: IChatSocketService,
     private val userRepository: IUserRepository,
-) : ViewModel() {
-    private val _chatState = MutableStateFlow(ChatState())
-    val chatState = _chatState.asStateFlow()
-
+) : IChatViewModel(ChatState()) {
     private val _toastEvent = MutableSharedFlow<String>()
     val toastEvent = _toastEvent.asSharedFlow()
 
@@ -30,8 +37,8 @@ class ChatViewModel(
                 when (it) {
                     is Result.Success -> {
                         it.data.let { user ->
-                            _chatState.update { chat ->
-                                chat.copy(username = user?.username!!)
+                            reduce {
+                                state.copy(username = user?.username!!)
                             }
                         }
                     }
@@ -41,7 +48,7 @@ class ChatViewModel(
         }
     }
 
-    fun connect() {
+    override fun connect() {
         viewModelScope.launch(Dispatchers.IO) {
             getAllMessages()
             userRepository.getUser().let { result ->
@@ -52,11 +59,11 @@ class ChatViewModel(
                                 when (initResult) {
                                     is Result.Success -> {
                                         chatSocketService.observeMessages().onEach { message ->
-                                            chatState.value.messages.toMutableList().apply {
+                                            state.messages.toMutableList().apply {
                                                 add(0, message)
                                             }.let { newList ->
-                                                _chatState.update { chat ->
-                                                    chat.copy(messages = newList, username = user.username)
+                                                reduce {
+                                                    state.copy(messages = newList, username = user.username)
                                                 }
                                             }
                                         }.launchIn(viewModelScope)
@@ -72,35 +79,37 @@ class ChatViewModel(
         }
     }
 
-    fun onMessageChange(message: String) {
+    override fun onMessageChange(message: String) {
         viewModelScope.launch {
-            _chatState.update { chat ->
-                chat.copy(message = message)
+            reduce {
+                state.copy(message = message)
             }
         }
     }
 
-    fun disconnect() {
+    override fun disconnect() {
         viewModelScope.launch(Dispatchers.IO) {
             chatSocketService.closeSession()
         }
     }
 
-    private fun getAllMessages() {
+    override fun getAllMessages() {
         viewModelScope.launch(Dispatchers.IO) {
-            _chatState.update { chat ->
-                messagesRepository.getAllMessages().let { messages ->
-                    chat.copy(messages = messages)
+            messagesRepository.getAllMessages().let { messages ->
+                reduce {
+                    state.copy(messages = messages)
                 }
             }
         }
     }
 
-    fun sendMessage() {
+    override fun sendMessage() {
         viewModelScope.launch(Dispatchers.IO) {
-            if (chatState.value.message.isNotBlank()) {
-                chatSocketService.sendMessage(_chatState.value.message)
-                _chatState.update { chat -> chat.copy(message = "") }
+            if (state.message.isNotBlank()) {
+                chatSocketService.sendMessage(state.message)
+                reduce {
+                    state.copy(message = "")
+                }
             }
         }
     }

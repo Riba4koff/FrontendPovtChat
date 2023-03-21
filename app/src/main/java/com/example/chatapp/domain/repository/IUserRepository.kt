@@ -8,11 +8,11 @@ import com.example.chatapp.data.util.Result
 import com.example.chatapp.domain.models.User
 
 interface IUserRepository {
-    suspend fun signUp(login: String, password: String, username: String, email: String): RegisterResult<Unit>
-    suspend fun signIn(login: String, password: String): LoginResult<Unit>
+    suspend fun signUp(login: String, password: String, username: String, email: String): RegisterResult<String>
+    suspend fun signIn(login: String, password: String): LoginResult<String>
     suspend fun logout() : Result<String>
-    suspend fun authenticate(signInResponse: SignInResponse) : LoginResult<Unit>
+    suspend fun authenticate(signInResponse: SignInResponse) : LoginResult<String>
 
     suspend fun getUser() : Result<User>
-    suspend fun editUser(editUserInfoRequest: EditUserInfoRequest) : Result<Unit>
+    suspend fun editUser(editUserInfoRequest: EditUserInfoRequest) : Result<String>
 }

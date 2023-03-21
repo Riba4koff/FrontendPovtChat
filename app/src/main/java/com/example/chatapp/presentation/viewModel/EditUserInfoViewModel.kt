@@ -19,19 +19,26 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+abstract class IEditUserInfoViewModel(
+    initialState: EditProfileState,
+) : MVIViewModel<EditProfileState>(initialState) {
+    abstract fun onLoginChange(text: String)
+    abstract fun onUsernameChange(text: String)
+    abstract fun onEmailChange(text: String)
+    abstract fun save(navigateToProfile: () -> Unit, context: Context)
+}
+
 class EditUserInfoViewModel(
     private val repository: IUserRepository,
-    context: Context
-) : ViewModel() {
-    private val _editUserInfoState = MutableStateFlow(EditProfileState())
-    val state = _editUserInfoState.asStateFlow()
+    context: Context,
+) : IEditUserInfoViewModel(EditProfileState()) {
 
     init {
         viewModelScope.launch {
             when (val queryResult = repository.getUser()) {
                 is Result.Success -> {
                     queryResult.data.let { user ->
-                        _editUserInfoState.update { state ->
+                        reduce {
                             state.copy(
                                 login = user!!.login,
                                 username = user.username,
@@ -47,31 +54,31 @@ class EditUserInfoViewModel(
         }
     }
 
-    fun onLoginChange(text: String) {
+    override fun onLoginChange(text: String) {
         viewModelScope.launch {
-            _editUserInfoState.update { state ->
+            reduce {
                 state.copy(login = text)
             }
         }
     }
 
-    fun onEmailChange(text: String) {
+    override fun onEmailChange(text: String) {
         viewModelScope.launch {
-            _editUserInfoState.update { state ->
+            reduce {
                 state.copy(email = text)
             }
         }
     }
 
-    fun onUsernameChange(text: String) {
+    override fun onUsernameChange(text: String) {
         viewModelScope.launch {
-            _editUserInfoState.update { state ->
+            reduce {
                 state.copy(username = text)
             }
         }
     }
 
-    fun save(
+    override fun save(
         navigateToProfile: () -> Unit,
         context: Context,
     ) {
@@ -82,10 +89,10 @@ class EditUserInfoViewModel(
                         when (val editUserResult = repository.editUser(
                             EditUserInfoRequest(
                                 oldLogin = user!!.login,
-                                newLogin = state.value.login,
+                                newLogin = state.login,
                                 oldUsername = user.username,
-                                newUsername = state.value.username,
-                                email = state.value.email
+                                newUsername = state.username,
+                                email = state.email
                             )
                         )) {
                             is Result.Success -> {

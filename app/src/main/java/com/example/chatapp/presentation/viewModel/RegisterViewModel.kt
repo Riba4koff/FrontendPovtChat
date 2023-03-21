@@ -1,7 +1,8 @@
 package com.example.chatapp.presentation.viewModel
 
 
-import androidx.lifecycle.ViewModel
+import android.content.Context
+import android.widget.Toast
 import androidx.lifecycle.viewModelScope
 import com.example.chatapp.data.util.RegisterResult
 import com.example.chatapp.domain.repository.IUserRepository
@@ -12,49 +13,59 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
+abstract class IRegisterViewModel(
+    initialState: RegisterState
+) : MVIViewModel<RegisterState>(initialState) {
+    abstract fun onEmailChange(text: String)
+    abstract fun onLoginChange(text: String)
+    abstract fun onUsernameChange(text: String)
+    abstract fun onPasswordChange(text: String)
+    abstract fun trySignUp(navigateToChats: () -> Unit, context: Context)
+    abstract fun tryRegisterDisable()
+    abstract fun tryRegisterEnable()
+}
+
 class RegisterViewModel(
     private val emailValidator: EmailValidator,
     private val loginValidator: LoginValidator,
     private val credentialValidator: CredentialValidator,
     private val passwordValidator: PasswordValidator,
     private val repository: IUserRepository,
-) : ViewModel() {
-    private val _registerState = MutableStateFlow(RegisterState())
-    val registerState = _registerState.asStateFlow()
+) : IRegisterViewModel(RegisterState()) {
 
     private val _errorMessagesState = MutableStateFlow(ErrorMessagesState())
     val errorMessageState = _errorMessagesState.asStateFlow()
 
-    fun onEmailChange(text: String) {
+    override fun onEmailChange(text: String) {
         viewModelScope.launch {
-            _registerState.update {
-                it.copy(email = text)
+            reduce {
+                state.copy(email = text)
             }
-            _errorMessagesState.update {
-                it.copy(
+            _errorMessagesState.update { errors ->
+                errors.copy(
                     emailError = emailValidator(text)
                 )
             }
         }
     }
 
-    fun onLoginChange(text: String) {
+    override fun onLoginChange(text: String) {
         viewModelScope.launch {
-            _registerState.update {
-                it.copy(login = text)
+            reduce {
+                state.copy(login = text)
             }
-            _errorMessagesState.update {
-                it.copy(
+            _errorMessagesState.update { errors ->
+                errors.copy(
                     loginError = loginValidator(text)
                 )
             }
         }
     }
 
-    fun onUsernameChange(text: String) {
+    override fun onUsernameChange(text: String) {
         viewModelScope.launch {
-            _registerState.update {
-                it.copy(username = text)
+            reduce {
+                state.copy(username = text)
             }
             _errorMessagesState.update {
                 it.copy(
@@ -64,10 +75,10 @@ class RegisterViewModel(
         }
     }
 
-    fun onPasswordChange(text: String) {
+    override fun onPasswordChange(text: String) {
         viewModelScope.launch {
-            _registerState.update {
-                it.copy(password = text)
+            reduce {
+                state.copy(password = text)
             }
             _errorMessagesState.update {
                 it.copy(
@@ -77,16 +88,17 @@ class RegisterViewModel(
         }
     }
 
-    fun trySignUp(
+    override fun trySignUp(
         navigateToChats: () -> Unit,
+        context: Context
     ) {
         viewModelScope.launch {
             tryRegisterDisable()
 
-            val emailResult = emailValidator(registerState.value.email)
-            val loginResult = loginValidator(registerState.value.login)
-            val usernameResult = credentialValidator(registerState.value.username)
-            val passwordResult = passwordValidator(registerState.value.password)
+            val emailResult = emailValidator(state.email)
+            val loginResult = loginValidator(state.login)
+            val usernameResult = credentialValidator(state.username)
+            val passwordResult = passwordValidator(state.password)
 
             val errors = listOf(
                 emailResult,
@@ -111,46 +123,30 @@ class RegisterViewModel(
                 true -> tryRegisterEnable()
                 false -> {
                     val response = repository.signUp(
-                        login = registerState.value.login,
-                        password = registerState.value.password,
-                        email = registerState.value.email,
-                        username = registerState.value.username,
+                        login = state.login,
+                        password = state.password,
+                        email = state.email,
+                        username = state.username,
                     )
                     when (response) {
                         is RegisterResult.Success -> {
+                            Toast.makeText(context, response.data, Toast.LENGTH_SHORT).show()
                             repository.signIn(
-                                _registerState.value.login,
-                                _registerState.value.password
+                                state.login,
+                                state.password
                             )
                             navigateToChats()
                         }
                         is RegisterResult.Error -> {
                             viewModelScope.launch {
-                                _errorMessagesState.update { state ->
-                                    state.copy(
-                                        unknownError = ValidateResult(
-                                            tag = "UNKNOWN_ERROR",
-                                            isSuccessful = false,
-                                            message = "Неизвестная ошибка"
-                                        )
-                                    )
-                                }
+                                Toast.makeText(context, response.data, Toast.LENGTH_SHORT).show()
                             }
                         }
                         is RegisterResult.UserHasAlreadyExists -> {
                             viewModelScope.launch {
-                                _errorMessagesState.update { state ->
-                                    state.copy(
-                                        userHasAlreadyExists = ValidateResult(
-                                            tag = "USER_ALREADY_EXISTS",
-                                            isSuccessful = false,
-                                            message = "Данный пользователь уже зарегистрирован"
-                                        )
-                                    )
-                                }
+                                Toast.makeText(context, response.data, Toast.LENGTH_SHORT).show()
                             }
                         }
-                        else -> TODO()
                     }
                     tryRegisterEnable()
                 }
@@ -158,15 +154,15 @@ class RegisterViewModel(
         }
     }
 
-    private fun tryRegisterDisable() {
-        _registerState.update {
-            it.copy(inProcessing = true, tryRegisterEnabled = false)
+    override fun tryRegisterDisable() {
+        reduce {
+            state.copy(inProcessing = true, tryRegisterEnabled = false)
         }
     }
 
-    private fun tryRegisterEnable() {
-        _registerState.update {
-            it.copy(inProcessing = false, tryRegisterEnabled = true)
+    override fun tryRegisterEnable() {
+        reduce {
+            state.copy(inProcessing = false, tryRegisterEnabled = true)
         }
     }
 }

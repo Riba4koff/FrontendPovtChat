@@ -8,7 +8,7 @@ import java.time.format.DateTimeParseException
 
 @kotlinx.serialization.Serializable
 data class MessageDTO(
-    val id_chat: Int,
+    val id_chat: Long,
     val id_user: String,
     val text: String,
     val time_sending: Long

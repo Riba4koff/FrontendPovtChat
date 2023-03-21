@@ -39,7 +39,7 @@ fun EditUserInfo(
     viewmodel: EditUserInfoViewModel = getViewModel(),
     navigator: DestinationsNavigator,
 ) {
-    val state by viewmodel.state.collectAsState()
+    val state by viewmodel.viewModelState.collectAsState()
     val context = LocalContext.current
 
     Scaffold(
@@ -75,7 +75,7 @@ fun EditUserInfo(
     ) { padding ->
         Column(
             modifier = Modifier
-                .padding(padding),
+                .padding(padding).padding(8.dp),
             verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {

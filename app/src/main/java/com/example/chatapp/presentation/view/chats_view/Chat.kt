@@ -1,6 +1,9 @@
 package com.example.chatapp.presentation.view
 
-import androidx.compose.foundation.*
+import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -10,33 +13,58 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Send
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.example.chatapp.domain.models.Message
 import com.example.chatapp.presentation.view.destinations.ChatsDestination
+import com.example.chatapp.presentation.view.destinations.ProfileDestination
+import com.example.chatapp.presentation.viewModel.ChatViewModel
 import com.example.chatapp.ui.theme.Purple200
 import com.example.chatapp.ui.theme.isOwnMessageColor
 import com.ramcosta.composedestinations.annotation.Destination
-import com.ramcosta.composedestinations.navigation.navigate
+import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.navigation.popUpTo
+import kotlinx.coroutines.flow.collectLatest
+import org.koin.androidx.compose.getViewModel
 
-@Destination(route = "chat_route")
+@Destination(route = "general_chat")
 @Composable
-fun Chat(
-    navController: NavController,
+fun GeneralChat(
+    viewModel: ChatViewModel = getViewModel(),
+    navigator: DestinationsNavigator,
 ) {
+    val context = LocalContext.current
+    LaunchedEffect(key1 = true) {
+        viewModel.toastEvent.collectLatest { message ->
+            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+        }
+    }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(key1 = lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_START) viewModel.connect()
+            else if (event == Lifecycle.Event.ON_STOP) viewModel.disconnect()
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    val state by viewModel.viewModelState.collectAsState()
+
     Scaffold(
         topBar = {
             TopAppBar(backgroundColor = Purple200) {
@@ -46,7 +74,7 @@ fun Chat(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         IconButton(onClick = {
-                            navController.navigate(ChatsDestination) {
+                            navigator.navigate(ChatsDestination) {
                                 popUpTo(ChatsDestination) {
                                     inclusive = true
                                 }
@@ -59,41 +87,57 @@ fun Chat(
                         }
                         Text(
                             modifier = Modifier.padding(start = 8.dp),
-                            text = "Название чата",
+                            text = "Общий чат",
                             fontSize = 24.sp,
                             color = Color.White
                         )
-                    }
-                    IconButton(onClick = {
-
-                    }) {
-                        Icon(imageVector = Icons.Default.MoreVert, contentDescription = "")
                     }
                 }
             }
         },
     ) { padding ->
-        LazyColumn(
-            Modifier
-                .fillMaxSize()
-                .padding(padding), reverseLayout = true
-        ) {
-            item {
-                SendMessageTextField(modifier = Modifier.fillMaxWidth(0.88f),
-                    value = "",
-                    onValueChange = {
+        GeneralChatContent(
+            modifier = Modifier.padding(padding),
+            messages = state.messages,
+            message = state.message,
+            onMessageChange = viewModel::onMessageChange,
+            sendMessage = viewModel::sendMessage,
+            username = state.username
+        )
+    }
+}
 
-                    },
-                    placeholder = {
-                        Text("Напишите сообщение...")
-                    },
-                    send = {
-
-                    })
-            }
-            items(emptyList<Message>()) { message ->
-                MessageItem(message = message, timeSending = message.formattedTime)
-            }
+@Composable
+fun GeneralChatContent(
+    modifier: Modifier = Modifier,
+    messages: List<Message> = emptyList(),
+    message: String,
+    onMessageChange: (String) -> Unit,
+    sendMessage: () -> Unit,
+    username: String,
+) {
+    LazyColumn(
+        modifier
+            .fillMaxSize(), reverseLayout = true
+    ) {
+        item {
+            SendMessageTextField(
+                modifier = Modifier.fillMaxWidth(0.88f),
+                value = message,
+                onValueChange = onMessageChange,
+                placeholder = {
+                    Text("Напишите сообщение...")
+                },
+                send = sendMessage
+            )
+            Spacer(Modifier.height(8.dp))
+        }
+        items(messages) { message ->
+            MessageItem(
+                message = message,
+                isOwnMessage = username == message.username,
+                timeSending = message.formattedTime
+            )
         }
     }
 }
@@ -188,16 +232,4 @@ fun SendMessageTextField(
             }
         }
     }
-}
-
-@Preview
-@Composable
-fun PreviewChat() {
-    MessageItem(
-        message = Message(
-            text = "Здарова бродяги ааааааааааааааааааааааааа",
-            formattedTime = "5 марта 20:12",
-            username = "Riba4koff"
-        ), timeSending = "5 марта 20:12"
-    )
 }

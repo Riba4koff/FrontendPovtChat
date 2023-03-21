@@ -30,8 +30,8 @@ class KtorHttpClient(
     }
 
     companion object {
-        private const val CONNECT_TIME_OUT = 10_000L
-        private const val WEBSOCKET_TIME_OUT = 120_000L
+        private const val CONNECT_TIME_OUT = 5_000L
+        private const val WEBSOCKET_TIME_OUT = 5_000L
         private const val TAG_KTOR_LOGGER = "KTOR_LOGGER: "
         private const val TAG_HTTP_STATUS_LOGGER = "HTTP_STATUS: "
     }
@@ -42,7 +42,6 @@ class KtorHttpClient(
             pipelining = true
         }
         val token = runBlocking { sessionManager.getJwtToken().first() }
-        Log.d("TOKEN_TAG: ", token)
         install(Auth) {
             bearer {
                 loadTokens { BearerTokens(token, "") }

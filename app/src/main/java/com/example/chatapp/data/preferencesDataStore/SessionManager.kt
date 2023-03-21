@@ -15,10 +15,10 @@ import java.io.IOException
 private val Context.dataStore by preferencesDataStore(name = "preferences_data_store")
 
 class SessionManager(
-    context: Context ?= null
+    val context: Context
 ) : ISessionManager {
 
-    private val dataStore: DataStore<Preferences> = context!!.dataStore
+    private val dataStore: DataStore<Preferences> = context.dataStore
 
     companion object KEYS {
         private val TOKEN_ACCESS = stringPreferencesKey("TOKEN_ACCESS")

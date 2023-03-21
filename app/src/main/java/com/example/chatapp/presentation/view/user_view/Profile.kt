@@ -1,5 +1,6 @@
 package com.example.chatapp.presentation.view
 
+import android.hardware.lights.Light
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -15,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -26,6 +28,7 @@ import com.example.chatapp.presentation.Navigation.ChatBottomNavigation
 import com.example.chatapp.presentation.view.destinations.ChatsDestination
 import com.example.chatapp.presentation.view.destinations.EditUserInfoDestination
 import com.example.chatapp.presentation.view.destinations.LoginDestination
+import com.example.chatapp.presentation.view.destinations.ProfileDestination
 import com.example.chatapp.presentation.viewModel.ProfileViewModel
 import com.example.chatapp.ui.theme.Purple200
 import com.ramcosta.composedestinations.annotation.Destination
@@ -39,9 +42,9 @@ import org.koin.androidx.compose.getViewModel
 fun Profile(
     navController: NavController,
     viewModel: ProfileViewModel = getViewModel(),
-    navigator: DestinationsNavigator
+    navigator: DestinationsNavigator? = null,
 ) {
-    val state by viewModel.profileState.collectAsState()
+    val state by viewModel.viewModelState.collectAsState()
 
     Scaffold(
         topBar = {
@@ -66,11 +69,11 @@ fun Profile(
                 login = state.login,
                 email = state.email,
                 editProfile = {
-                    navigator.navigate(EditUserInfoDestination)
+                    navigator?.navigate(EditUserInfoDestination)
                 },
                 exit = {
                     viewModel.logout {
-                        navigator.navigate(LoginDestination){
+                        navigator?.navigate(LoginDestination){
                             popUpTo(ChatsDestination){
                                 inclusive = true
                             }
@@ -90,50 +93,70 @@ fun ProfileContent(
     editProfile: () -> Unit,
     exit: () -> Unit,
 ) {
-    Column(
-        Modifier
+    Column(Modifier.fillMaxSize()) {
+        RowInfo(info = login, text = "Логин")
+        RowInfo(info = username, text = "Имя пользователя")
+        RowInfo(info = email, text = "Почта")
+        ChatButton(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
+                .height(45.dp),
+            onClick = editProfile,
+            title = "Изменить",
+            color = Purple200.copy(0.7f)
+        )
+        ChatButton(modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 32.dp, end = 32.dp)
-            .border(BorderStroke(1.dp, Color.Gray))
-            .background(Color.Gray.copy(0.1f))
-    ) {
-        Spacer(modifier = Modifier.height(16.dp))
-
-        RowInfo(title = "Имя пользователя", info = username)
-        Spacer(modifier = Modifier.height(8.dp))
-
-        RowInfo(title = "Логин", info = login)
-        Spacer(modifier = Modifier.height(8.dp))
-
-        RowInfo(title = "Почта", info = email)
-        Spacer(modifier = Modifier.height(8.dp))
-
-        ChatButton(
-            modifier = Modifier.fillMaxWidth(0.65f),
-            onClick = editProfile, title = "Изменить"
-        )
-        ChatButton(
-            modifier = Modifier.fillMaxWidth(0.65f),
-            onClick = exit, title = "Выйти"
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
+            .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
+            .height(45.dp),
+            onClick = exit,
+            title = "Выйти",
+            color = Purple200.copy(0.7f))
     }
 }
 
 @Composable
 fun RowInfo(
-    title: String,
     info: String,
+    text: String,
 ) {
     Row(
         Modifier
             .fillMaxWidth()
-            .padding(start = 16.dp, end = 16.dp),
-        verticalAlignment = Alignment.CenterVertically,
+            .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp),
         horizontalArrangement = Arrangement.Center
     ) {
-        Text("$title: $info", fontSize = 16.sp)
+        Card(elevation = 5.dp) {
+            Column {
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .background(Purple200.copy(0.3f)),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        modifier = Modifier.padding(top = 8.dp, bottom = 8.dp),
+                        text = text,
+                        fontSize = 16.sp
+                    )
+                }
+                Divider()
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .background(Purple200.copy(0.05f)),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        modifier = Modifier.padding(16.dp),
+                        text = info,
+                        fontSize = 26.sp,
+                        fontWeight = FontWeight.Light
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -161,4 +184,10 @@ fun ChatButton(
             Text(text = title)
         }
     }
+}
+
+@Preview
+@Composable
+fun ProfilePreview() {
+    Profile(navController = rememberNavController())
 }

@@ -11,6 +11,7 @@ import com.example.chatapp.data.remote.KtorClient.ModelRequests.signUp.SignUpReq
 import com.example.chatapp.data.util.Result
 import com.example.chatapp.domain.models.User
 import com.example.chatapp.domain.repository.IUserRepository
+import io.ktor.network.sockets.*
 import kotlinx.coroutines.flow.first
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -27,41 +28,67 @@ class UserRepository(
         password: String,
         username: String,
         email: String,
-    ): RegisterResult<Unit> {
+    ): RegisterResult<String> {
         return try {
             api.signUp(
                 SignUpRequest(
                     login, password, email, username
                 )
             ).let { response ->
-                if (response.successful) RegisterResult.Success()
-                else if (response.userHasAlreadyExists) RegisterResult.UserHasAlreadyExists()
-                else RegisterResult.Error()
+                if (response.successful) RegisterResult.Success("Успешная регистрация")
+                else if (response.userHasAlreadyExists) RegisterResult.UserHasAlreadyExists("Пользователь уже зарегестрирован")
+                else RegisterResult.Error("Неизвестная ошибка")
             }
-        } catch (e: Exception) {
-            RegisterResult.Error()
+        } catch (e: ConnectTimeoutException) {
+            RegisterResult.Error("Ошибка подключения")
+        } catch (e: Exception){
+            RegisterResult.Error("Неизвестная ошибка")
         }
     }
 
-    override suspend fun signIn(login: String, password: String): LoginResult<Unit> {
+    override suspend fun signIn(login: String, password: String): LoginResult<String> {
         return try {
-            val response = api.signIn(
+            api.signIn(
                 request = SignInRequest(
                     login, password
                 )
-            )
-            sessionManager.saveJwtToken(response.token)
-            if (response.token.isBlank()) return LoginResult.Unauthorized()
-            authenticate(response)
+            ).let { response ->
+                if(response.invalidLoginOrPassword) LoginResult.InvalidLoginOrPassword("Неверный логин или пароль")
+                else if (response.token.isNotBlank()) sessionManager.saveJwtToken(response.token)
+                authenticate(response)
+            }
         }
         catch (e: HttpException) {
-            LoginResult.HttpError()
+            LoginResult.Error("Ошибка сервера")
+        }
+        catch (e: ConnectTimeoutException){
+            LoginResult.Error("Ошибка подключения")
         }
         catch (e: Exception){
-            LoginResult.InvalidLoginOrPassword()
+            LoginResult.Error("Неизвестная ошибка")
         }
     }
-
+    override suspend fun authenticate(signInResponse: SignInResponse): LoginResult<String> {
+        return try {
+            val response = api.authenticate()
+            if (response.successful) {
+                sessionManager.updateSession(
+                    token = signInResponse.token,
+                    login = signInResponse.login,
+                    email = signInResponse.email,
+                    username = signInResponse.username
+                )
+                LoginResult.Authorized("Успешная авторизация")
+            } else LoginResult.Unauthorized("Ошибка авторизации")
+        } catch (e: HttpException) {
+            if (e.code() == 401) LoginResult.Unauthorized()
+            else LoginResult.Error("Ошибка авторизации")
+        } catch (e: Exception) {
+            LoginResult.Error("Неизвестная ошибка")
+        } catch (e: ConnectTimeoutException) {
+            LoginResult.Error("Ошибка подключения")
+        }
+    }
     override suspend fun logout(): Result<String> {
         return try {
             sessionManager.logout()
@@ -89,7 +116,7 @@ class UserRepository(
 
     override suspend fun editUser(
         editUserInfoRequest: EditUserInfoRequest,
-    ): Result<Unit> {
+    ): Result<String> {
         return try {
             val result = api.editUser(editUserInfoRequest)
             if (result.successful) {
@@ -103,26 +130,6 @@ class UserRepository(
         } catch (e: Exception) {
             e.printStackTrace()
             Result.Error(e.message ?: "Some problem occurred!")
-        }
-    }
-
-    override suspend fun authenticate(signInResponse: SignInResponse): LoginResult<Unit> {
-        return try {
-            val response = api.authenticate()
-            if (response.successful) {
-                sessionManager.updateSession(
-                    token = signInResponse.token,
-                    login = signInResponse.login,
-                    email = signInResponse.email,
-                    username = signInResponse.username
-                )
-                LoginResult.Authorized()
-            } else LoginResult.Unauthorized()
-        } catch (e: HttpException) {
-            if (e.code() == 401) LoginResult.Unauthorized()
-            else LoginResult.HttpError()
-        } catch (e: Exception) {
-            LoginResult.HttpError()
         }
     }
 }

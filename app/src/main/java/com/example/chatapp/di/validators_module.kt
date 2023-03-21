@@ -1,6 +1,5 @@
 package com.example.chatapp.di
 
-import androidx.sqlite.db.SimpleSQLiteQuery.Companion.bind
 import com.example.chatapp.presentation.validators.*
 import org.koin.core.module.dsl.bind
 import org.koin.core.module.dsl.singleOf
