@@ -1,4 +1,4 @@
-package com.example.chatapp.domain.repository
+package com.example.chatapp.domain.irepository
 
 import com.example.chatapp.data.remote.KtorClient.ModelRequests.EditUserInfo.EditUserInfoRequest
 import com.example.chatapp.data.util.LoginResult

@@ -1,10 +1,10 @@
-package com.example.chatapp.data.repositoryImpl
+package com.example.chatapp.data.repository
 
 import android.util.Log
 import com.example.chatapp.data.local.room.datasources.IMessagesSource
 import com.example.chatapp.data.remote.KtorClient.IAuthApi
 import com.example.chatapp.domain.models.Message
-import com.example.chatapp.domain.repository.IMessagesRepository
+import com.example.chatapp.domain.irepository.IMessagesRepository
 import retrofit2.HttpException
 
 class MessagesRepository(

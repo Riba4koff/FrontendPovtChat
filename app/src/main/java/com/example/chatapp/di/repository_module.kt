@@ -1,9 +1,9 @@
 package com.example.chatapp.di
 
-import com.example.chatapp.data.repositoryImpl.MessagesRepository
-import com.example.chatapp.data.repositoryImpl.UserRepository
-import com.example.chatapp.domain.repository.IMessagesRepository
-import com.example.chatapp.domain.repository.IUserRepository
+import com.example.chatapp.data.repository.MessagesRepository
+import com.example.chatapp.data.repository.UserRepository
+import com.example.chatapp.domain.irepository.IMessagesRepository
+import com.example.chatapp.domain.irepository.IUserRepository
 import org.koin.core.module.dsl.bind
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module

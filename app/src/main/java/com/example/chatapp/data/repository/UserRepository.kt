@@ -1,4 +1,4 @@
-package com.example.chatapp.data.repositoryImpl
+package com.example.chatapp.data.repository
 
 import com.example.chatapp.data.preferencesDataStore.SessionManager
 import com.example.chatapp.data.remote.KtorClient.IAuthApi
@@ -10,7 +10,7 @@ import com.example.chatapp.data.remote.KtorClient.ModelRequests.signIn.SignInRes
 import com.example.chatapp.data.remote.KtorClient.ModelRequests.signUp.SignUpRequest
 import com.example.chatapp.data.util.Result
 import com.example.chatapp.domain.models.User
-import com.example.chatapp.domain.repository.IUserRepository
+import com.example.chatapp.domain.irepository.IUserRepository
 import io.ktor.network.sockets.*
 import kotlinx.coroutines.flow.first
 import org.koin.core.component.KoinComponent

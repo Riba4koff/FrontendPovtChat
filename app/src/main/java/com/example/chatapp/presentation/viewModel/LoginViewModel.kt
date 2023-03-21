@@ -5,11 +5,8 @@ import android.content.Context
 import android.widget.Toast
 import androidx.lifecycle.viewModelScope
 import com.example.chatapp.data.util.LoginResult
-import com.example.chatapp.domain.repository.IUserRepository
+import com.example.chatapp.domain.irepository.IUserRepository
 import com.example.chatapp.presentation.viewModel.states.LoginAndRegisterStates.LoginState
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 abstract class ILoginViewModel(

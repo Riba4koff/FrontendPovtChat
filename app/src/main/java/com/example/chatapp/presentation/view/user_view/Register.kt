@@ -2,7 +2,6 @@ package com.example.chatapp.presentation.view
 
 
 import android.annotation.SuppressLint
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -25,7 +24,6 @@ import com.example.chatapp.ui.theme.Purple200
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.navigation.popUpTo
-import kotlinx.coroutines.launch
 import org.koin.androidx.compose.getViewModel
 
 @SuppressLint("ShowToast")
@@ -37,8 +35,9 @@ fun Register(
     viewModel: RegisterViewModel = getViewModel(),
     navigator: DestinationsNavigator,
 ) {
-    val state by viewModel.registerState.collectAsState()
+    val state by viewModel.viewModelState.collectAsState()
     val errors by viewModel.errorMessageState.collectAsState()
+    val context = LocalContext.current
 
     Box(
         modifier = Modifier
@@ -71,7 +70,9 @@ fun Register(
                                 inclusive = true
                             }
                         }
-                    })
+                    },
+                    context = context
+                )
             },
             visible = state.inProcessing
         )

@@ -1,13 +1,9 @@
 package com.example.chatapp.presentation.viewModel
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.chatapp.data.util.Result
-import com.example.chatapp.domain.repository.IUserRepository
+import com.example.chatapp.domain.irepository.IUserRepository
 import com.example.chatapp.presentation.viewModel.states.Profile.ProfileState
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 abstract class IProfileViewModel(

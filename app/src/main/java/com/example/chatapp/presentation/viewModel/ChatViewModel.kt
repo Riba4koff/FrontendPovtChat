@@ -1,17 +1,14 @@
 package com.example.chatapp.presentation.viewModel
 
-import android.util.Log
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.chatapp.data.remote.ChatSocketService.IChatSocketService
 import com.example.chatapp.data.util.Result
-import com.example.chatapp.domain.repository.IMessagesRepository
-import com.example.chatapp.domain.repository.IUserRepository
+import com.example.chatapp.domain.irepository.IMessagesRepository
+import com.example.chatapp.domain.irepository.IUserRepository
 import com.example.chatapp.presentation.viewModel.states.Chat.ChatState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 abstract class IChatViewModel(
     initialState: ChatState
