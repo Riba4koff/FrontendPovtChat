@@ -1,6 +1,7 @@
 package com.example.chatapp.presentation.view
 
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -102,7 +103,8 @@ fun GeneralChat(
             message = state.message,
             onMessageChange = viewModel::onMessageChange,
             sendMessage = viewModel::sendMessage,
-            username = state.username
+            username = state.username,
+            loading = state.isLoading
         )
     }
 }
@@ -115,7 +117,9 @@ fun GeneralChatContent(
     onMessageChange: (String) -> Unit,
     sendMessage: () -> Unit,
     username: String,
+    loading: Boolean
 ) {
+    LoadingIndicator(loading = loading)
     LazyColumn(
         modifier
             .fillMaxSize(), reverseLayout = true
@@ -142,6 +146,14 @@ fun GeneralChatContent(
     }
 }
 
+@Composable
+fun LoadingIndicator(loading: Boolean){
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center){
+        AnimatedVisibility(visible = loading) {
+            CircularProgressIndicator(color = Purple200)
+        }
+    }
+}
 
 @Composable
 fun MessageItem(

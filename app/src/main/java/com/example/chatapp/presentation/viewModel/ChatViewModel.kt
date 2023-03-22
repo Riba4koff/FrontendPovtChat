@@ -2,11 +2,13 @@ package com.example.chatapp.presentation.viewModel
 
 import androidx.lifecycle.viewModelScope
 import com.example.chatapp.data.remote.ChatSocketService.IChatSocketService
+import com.example.chatapp.data.util.MessagesResult
 import com.example.chatapp.data.util.Result
 import com.example.chatapp.domain.irepository.IMessagesRepository
 import com.example.chatapp.domain.irepository.IUserRepository
 import com.example.chatapp.presentation.viewModel.states.Chat.ChatState
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -47,14 +49,16 @@ class ChatViewModel(
 
     override fun connect() {
         viewModelScope.launch(Dispatchers.IO) {
-            getAllMessages()
             userRepository.getUser().let { result ->
                 when (result) {
                     is Result.Success -> {
+                        getAllMessages()
                         result.data.let { user ->
                             chatSocketService.initSession(user!!.username).let { initResult ->
                                 when (initResult) {
                                     is Result.Success -> {
+                                        if (countSuccessConnections == 0) _toastEvent.emit(result.message ?: "Подключение установлено")
+                                        countSuccessConnections++
                                         chatSocketService.observeMessages().onEach { message ->
                                             state.messages.toMutableList().apply {
                                                 add(0, message)
@@ -65,12 +69,15 @@ class ChatViewModel(
                                             }
                                         }.launchIn(viewModelScope)
                                     }
-                                    is Result.Error -> {_toastEvent.emit(result.message ?: "unknown error")}
+                                    is Result.Error -> {
+                                        countSuccessConnections = 0
+                                        _toastEvent.emit(result.message ?: "Подключение разорвано, отправка сообщений невозможна")
+                                    }
                                 }
                             }
                         }
                     }
-                    is Result.Error -> _toastEvent.emit(result.message ?: "unknown error")
+                    is Result.Error -> _toastEvent.emit(result.message ?: "Ошибка данных пользователя")
                 }
             }
         }
@@ -92,9 +99,21 @@ class ChatViewModel(
 
     override fun getAllMessages() {
         viewModelScope.launch(Dispatchers.IO) {
-            messagesRepository.getAllMessages().let { messages ->
-                reduce {
-                    state.copy(messages = messages)
+            startLoading()
+            messagesRepository.getAllMessages().let { result ->
+                when (result) {
+                    is MessagesResult.Success -> {
+                        stopLoading()
+                        reduce {
+                            state.copy(messages = result.data ?: emptyList())
+                        }
+                    }
+                    is MessagesResult.Error -> {
+                        stopLoading()
+                        reduce {
+                            state.copy(messages = result.data ?: emptyList())
+                        }
+                    }
                 }
             }
         }
@@ -116,4 +135,17 @@ class ChatViewModel(
         disconnect()
     }
 
+    fun startLoading() {
+        reduce {
+            state.copy(isLoading = true)
+        }
+    }
+    fun stopLoading() {
+        reduce {
+            state.copy(isLoading = false)
+        }
+    }
+
+
 }
+private var countSuccessConnections = 0

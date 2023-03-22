@@ -11,12 +11,14 @@ data class MessageModel(
 )
 
 data class Message(
+    val id_message: Long,
     val id_chat: Long = 0,
     val text: String,
     val formattedTime: String,
     val username: String
 ) {
     fun toEntity() = MessageEntity(
+        id_message = id_message,
         id_chat = id_chat,
         id_user = username,
         text = text,

@@ -41,7 +41,7 @@ class UserRepository(
             }
         } catch (e: ConnectTimeoutException) {
             RegisterResult.Error("Ошибка подключения")
-        } catch (e: Exception){
+        } catch (e: Exception) {
             RegisterResult.Error("Неизвестная ошибка")
         }
     }
@@ -53,21 +53,19 @@ class UserRepository(
                     login, password
                 )
             ).let { response ->
-                if(response.invalidLoginOrPassword) LoginResult.InvalidLoginOrPassword("Неверный логин или пароль")
+                if (response.invalidLoginOrPassword) LoginResult.InvalidLoginOrPassword("Неверный логин или пароль")
                 else if (response.token.isNotBlank()) sessionManager.saveJwtToken(response.token)
                 authenticate(response)
             }
-        }
-        catch (e: HttpException) {
+        } catch (e: HttpException) {
             LoginResult.Error("Ошибка сервера")
-        }
-        catch (e: ConnectTimeoutException){
+        } catch (e: ConnectTimeoutException) {
             LoginResult.Error("Ошибка подключения")
-        }
-        catch (e: Exception){
+        } catch (e: Exception) {
             LoginResult.Error("Неизвестная ошибка")
         }
     }
+
     override suspend fun authenticate(signInResponse: SignInResponse): LoginResult<String> {
         return try {
             val response = api.authenticate()
@@ -89,6 +87,7 @@ class UserRepository(
             LoginResult.Error("Ошибка подключения")
         }
     }
+
     override suspend fun logout(): Result<String> {
         return try {
             sessionManager.logout()
@@ -127,6 +126,8 @@ class UserRepository(
                 )
                 Result.Success(message = result.message)
             } else Result.Error(result.message)
+        } catch (e: ConnectTimeoutException) {
+            Result.Error("Ошибка подключения к серверу!")
         } catch (e: Exception) {
             e.printStackTrace()
             Result.Error(e.message ?: "Some problem occurred!")

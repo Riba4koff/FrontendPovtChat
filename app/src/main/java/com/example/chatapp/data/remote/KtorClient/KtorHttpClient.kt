@@ -30,7 +30,7 @@ class KtorHttpClient(
     }
 
     companion object {
-        private const val CONNECT_TIME_OUT = 5_000L
+        private const val CONNECT_TIME_OUT = 2500L
         private const val WEBSOCKET_TIME_OUT = 5_000L
         private const val TAG_KTOR_LOGGER = "KTOR_LOGGER: "
         private const val TAG_HTTP_STATUS_LOGGER = "HTTP_STATUS: "

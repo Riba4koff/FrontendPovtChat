@@ -7,6 +7,7 @@ interface IMessagesSource {
     suspend fun fetchAllMessages(): List<MessageEntity>
     suspend fun insertMessage(message: MessageEntity)
     suspend fun updateMessage(message: MessageEntity)
+    suspend fun fetchMessageById(id: Long): MessageEntity?
 }
 
 class MessagesSource(
@@ -20,5 +21,13 @@ class MessagesSource(
 
     override suspend fun updateMessage(message: MessageEntity) {
         messagesDataBase.updateMessage(message = message)
+    }
+
+    override suspend fun fetchMessageById(id: Long): MessageEntity?{
+        return try {
+            messagesDataBase.fetchMessageById(id)
+        } catch (e: Exception) {
+            null
+        }
     }
 }

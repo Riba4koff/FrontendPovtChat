@@ -45,6 +45,7 @@ fun Profile(
     navigator: DestinationsNavigator? = null,
 ) {
     val state by viewModel.viewModelState.collectAsState()
+    val context = LocalContext.current
 
     Scaffold(
         topBar = {
@@ -72,13 +73,16 @@ fun Profile(
                     navigator?.navigate(EditUserInfoDestination)
                 },
                 exit = {
-                    viewModel.logout {
-                        navigator?.navigate(LoginDestination){
-                            popUpTo(ChatsDestination){
-                                inclusive = true
+                    viewModel.logout(
+                        context = context,
+                        exit = {
+                            navigator?.navigate(LoginDestination){
+                                popUpTo(ChatsDestination){
+                                    inclusive = true
+                                }
                             }
                         }
-                    }
+                    )
                 }
             )
         }
