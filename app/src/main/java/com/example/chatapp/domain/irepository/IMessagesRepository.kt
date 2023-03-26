@@ -5,6 +5,7 @@ import com.example.chatapp.domain.models.Message
 
 interface IMessagesRepository {
      suspend fun getAllMessages() : MessagesResult<List<Message>>
+     suspend fun updateMessages(messages: List<Message>)
      suspend fun insertMessage(message: Message)
      suspend fun updateMessage(message: Message)
 }

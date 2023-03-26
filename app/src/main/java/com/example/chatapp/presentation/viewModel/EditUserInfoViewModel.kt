@@ -4,6 +4,7 @@ import android.content.Context
 import android.widget.Toast
 import androidx.lifecycle.viewModelScope
 import com.example.chatapp.data.remote.KtorClient.ModelRequests.EditUserInfo.EditUserInfoRequest
+import com.example.chatapp.data.repository.MessagesRepository
 import com.example.chatapp.data.util.Result
 import com.example.chatapp.domain.irepository.IUserRepository
 import com.example.chatapp.presentation.viewModel.states.Profile.EditProfileState
@@ -20,6 +21,7 @@ abstract class IEditUserInfoViewModel(
 
 class EditUserInfoViewModel(
     private val repository: IUserRepository,
+    private val messagesRepository: MessagesRepository,
     context: Context,
 ) : IEditUserInfoViewModel(EditProfileState()) {
 

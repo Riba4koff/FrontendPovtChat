@@ -11,7 +11,6 @@ interface MessagesDao {
     suspend fun insertMessage(message: MessageEntity)
     @Update
     suspend fun updateMessage(message: MessageEntity)
-
     @Query("SELECT * FROM messages WHERE id_message=:id")
     fun fetchMessageById(id: Long): MessageEntity
 }

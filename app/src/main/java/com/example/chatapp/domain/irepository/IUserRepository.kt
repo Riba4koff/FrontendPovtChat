@@ -1,6 +1,7 @@
 package com.example.chatapp.domain.irepository
 
 import com.example.chatapp.data.remote.KtorClient.ModelRequests.EditUserInfo.EditUserInfoRequest
+import com.example.chatapp.data.remote.KtorClient.ModelRequests.EditUserInfo.EditUserInfoResponse
 import com.example.chatapp.data.util.LoginResult
 import com.example.chatapp.data.util.RegisterResult
 import com.example.chatapp.data.remote.KtorClient.ModelRequests.signIn.SignInResponse
@@ -12,7 +13,6 @@ interface IUserRepository {
     suspend fun signIn(login: String, password: String): LoginResult<String>
     suspend fun logout() : Result<String>
     suspend fun authenticate(signInResponse: SignInResponse) : LoginResult<String>
-
     suspend fun getUser() : Result<User>
     suspend fun editUser(editUserInfoRequest: EditUserInfoRequest) : Result<String>
 }

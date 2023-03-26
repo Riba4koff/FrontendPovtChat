@@ -57,9 +57,9 @@ class ChatSocketService(
                 ?.receiveAsFlow()
                 ?.filter { it is Frame.Text }
                 ?.map { frame ->
-                    val json = (frame as? Frame.Text)?.readText() ?: ""
-                    val messageDTO = Json.decodeFromString<MessageDTO>(json)
-                    messageDTO.toMessage()
+                    (frame as? Frame.Text)?.readText()!!.let { json ->
+                        Json.decodeFromString<MessageDTO>(json).toMessage()
+                    }
                 } ?: flow { }
         } catch (e: Exception) {
             e.printStackTrace()

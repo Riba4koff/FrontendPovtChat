@@ -21,7 +21,7 @@ abstract class IChatViewModel(
     abstract fun getAllMessages()
     abstract fun sendMessage()
 }
-
+private var countSuccessConnections = 0
 class ChatViewModel(
     private val messagesRepository: IMessagesRepository,
     private val chatSocketService: IChatSocketService,
@@ -62,6 +62,7 @@ class ChatViewModel(
                                         chatSocketService.observeMessages().onEach { message ->
                                             state.messages.toMutableList().apply {
                                                 add(0, message)
+                                                messagesRepository.insertMessage(message)
                                             }.let { newList ->
                                                 reduce {
                                                     state.copy(messages = newList, username = user.username)
@@ -135,12 +136,12 @@ class ChatViewModel(
         disconnect()
     }
 
-    fun startLoading() {
+    private fun startLoading() {
         reduce {
             state.copy(isLoading = true)
         }
     }
-    fun stopLoading() {
+    private fun stopLoading() {
         reduce {
             state.copy(isLoading = false)
         }
@@ -148,4 +149,3 @@ class ChatViewModel(
 
 
 }
-private var countSuccessConnections = 0

@@ -35,9 +35,9 @@ class UserRepository(
                     login, password, email, username
                 )
             ).let { response ->
-                if (response.successful) RegisterResult.Success("Успешная регистрация")
-                else if (response.userHasAlreadyExists) RegisterResult.UserHasAlreadyExists("Пользователь уже зарегестрирован")
-                else RegisterResult.Error("Неизвестная ошибка")
+                if (response.successful) RegisterResult.Success(response.message)
+                else if (response.userHasAlreadyExists) RegisterResult.UserHasAlreadyExists(response.message)
+                else RegisterResult.Error(response.message)
             }
         } catch (e: ConnectTimeoutException) {
             RegisterResult.Error("Ошибка подключения")

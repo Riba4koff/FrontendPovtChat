@@ -7,6 +7,7 @@ import com.example.chatapp.data.remote.KtorClient.ModelRequests.signIn.SignInReq
 import com.example.chatapp.data.remote.KtorClient.ModelRequests.signIn.SignInResponse
 import com.example.chatapp.data.remote.KtorClient.ModelRequests.signUp.SignUpRequest
 import com.example.chatapp.data.remote.KtorClient.ModelRequests.signUp.SignUpResponse
+import com.example.chatapp.data.util.MessagesResult
 import com.example.chatapp.domain.models.Message
 import io.ktor.http.cio.websocket.*
 
@@ -19,12 +20,12 @@ interface IAuthApi {
 
     suspend fun editUser(editUserInfoRequest: EditUserInfoRequest): EditUserInfoResponse
 
-    suspend fun getAllMessages() : List<Message>
+    suspend fun getAllMessages() : MessagesResult<List<Message>>
 
     companion object {
-        private const val BASE_URL = "http://192.168.1.4:8080"
-        private const val IPHONE_URL = "http://172.20.10.2:8080"
-        private const val WEBSOCKET_URL = "ws://192.168.1.4:8080"
+        private const val BASE_URL = "http://192.168.1.5:8080"
+        private const val IPHONE_URL = "http://172.20.10.9:8080"
+        private const val WEBSOCKET_URL = "ws://192.168.1.5:8080"
     }
 
     sealed class Endpoints(val url: String) {

@@ -14,39 +14,38 @@ class MessagesRepository(
     private val source: IMessagesSource,
 ) : IMessagesRepository {
     override suspend fun getAllMessages(): MessagesResult<List<Message>> {
-        return try {
-            api.getAllMessages().map { message ->
-                source.fetchMessageById(message.id_message).let { entity ->
-                    if (entity == null) source.insertMessage(message = message.toEntity())
-                    entity?.toMessage()?.let { messageDB ->
-                        if (messageDB.id_message == message.id_message && message.username != messageDB.username) source.updateMessage(
-                            message = message.toEntity()
-                        )
+        return api.getAllMessages().let { result ->
+            when (result) {
+                is MessagesResult.Success -> {
+                    result.data?.let { messages ->
+                        updateMessages(messages = messages)
                     }
+                    MessagesResult.Success(
+                        data = source.fetchAllMessages().reversed().map { it.toMessage() }
+                    )
+                }
+                is MessagesResult.Error -> {
+                    MessagesResult.Error(
+                        data = source.fetchAllMessages().reversed().map { it.toMessage() })
                 }
             }
-            MessagesResult.Success(source.fetchAllMessages().reversed().map{ it.toMessage() })
-        } catch (e: ConnectTimeoutException) {
-            MessagesResult.Success(source.fetchAllMessages().reversed().map {
-                it.toMessage()
-            }, message = "Время подключения к серверу истекло")
-        } catch (e: ConnectException) {
-            MessagesResult.Success(source.fetchAllMessages().reversed().map {
-                it.toMessage()
-            }, message = "Ошибка подключения к серверу")
-        } catch (e: HttpException) {
-            MessagesResult.Success(source.fetchAllMessages().reversed().map {
-                it.toMessage()
-            }, message = "Сетевая ошибка")
-        } catch (e: Exception) {
-            MessagesResult.Error(emptyList(), e.message.toString())
         }
     }
 
+    override suspend fun updateMessages(messages: List<Message>) {
+        messages.map { message ->
+            source.fetchMessageById(message.id_message)?.let { entity ->
+                entity.toMessage().let { _entity ->
+                    if (_entity.id_message == message.id_message && _entity.username != message.username){
+                        source.updateMessage(message.toEntity())
+                    }
+                }
+            }
+        }
+    }
     override suspend fun insertMessage(message: Message) {
         source.insertMessage(message = message.toEntity())
     }
-
     override suspend fun updateMessage(message: Message) {
         source.updateMessage(message = message.toEntity())
     }
