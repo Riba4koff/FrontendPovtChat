@@ -12,4 +12,5 @@ val viewmodel_module = module {
     viewModelOf(::EditUserInfoViewModel)
     viewModelOf(::ChatViewModel)
     viewModelOf(::AdminPanelViewModel)
+    viewModelOf(::SplashViewViewModel)
 }

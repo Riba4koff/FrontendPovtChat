@@ -1,5 +1,6 @@
 package com.example.chatapp.data.repository
 
+import android.util.Log
 import com.example.chatapp.data.preferencesDataStore.SessionManager
 import com.example.chatapp.data.remote.KtorClient.IAuthApi
 import com.example.chatapp.data.remote.KtorClient.ModelRequests.EditUserInfo.EditUserInfoRequest
@@ -23,9 +24,6 @@ class UserRepository(
     private val api: IAuthApi,
     private val sessionManager: SessionManager
 ) : IUserRepository, KoinComponent {
-
-    //private val sessionManager by inject<SessionManager>()
-
     override suspend fun signUp(
         login: String,
         password: String,
@@ -56,6 +54,7 @@ class UserRepository(
                 )
             ).let { response ->
                 if (response.token.isNotBlank()) sessionManager.saveJwtToken(response.token)
+                if (response.invalidLoginOrPassword) return Result.Error(data = "Неверный логин или пароль")
                 return authenticate(response)
             }
         } catch (e: HttpException) {
@@ -63,12 +62,13 @@ class UserRepository(
         } catch (e: ConnectTimeoutException) {
             Result.Error(data = "Нет соединения с сервером")
         } catch (e: Exception) {
+            Log.d("EXCEPTION: ", e.message.toString())
             Result.Error(data = "Неизвестная ошибка")
         }
     }
 
     override suspend fun authenticate(signInResponse: SignInResponse): Result<String> {
-        return api.authenticate().let { response ->
+        api.authenticate().let { response ->
             if (response.successful) {
                 sessionManager.updateSession(
                     token = signInResponse.token,
@@ -76,8 +76,8 @@ class UserRepository(
                     email = signInResponse.email,
                     username = signInResponse.username
                 )
-                Result.Success("Успешная авторизация")
-            } else Result.Error("Ошибка авторизации")
+                return Result.Success("Успешная авторизация")
+            } else return Result.Error("Ошибка авторизации")
         }
     }
 
@@ -98,7 +98,6 @@ class UserRepository(
             throw it
         }
     }
-
 
     override suspend fun editUser(
         editUserInfoRequest: EditUserInfoRequest,

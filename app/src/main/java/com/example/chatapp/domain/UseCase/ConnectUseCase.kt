@@ -13,16 +13,15 @@ import java.lang.Thread.State
 
 class ConnectUseCase() {
     suspend fun execute(
-        scope: CoroutineScope,
         username: String,
         chatSocketService: IChatSocketService,
         sendMessage: suspend (Message) -> Unit
     ) {
         chatSocketService.initSession(username).let { result ->
             result.onSuccess {
-                chatSocketService.observeMessages().onEach { message ->
+                chatSocketService.observeMessages().collect() { message ->
                     sendMessage(message)
-                }.launchIn(scope)
+                }
             }
         }
     }

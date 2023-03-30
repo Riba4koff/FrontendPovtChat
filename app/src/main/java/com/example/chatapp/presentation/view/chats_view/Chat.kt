@@ -13,7 +13,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -35,7 +34,6 @@ import com.example.chatapp.ui.theme.Purple200
 import com.example.chatapp.ui.theme.isOwnMessageColor
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
-import com.ramcosta.composedestinations.navigation.popUpTo
 import kotlinx.coroutines.flow.collectLatest
 import org.koin.androidx.compose.getViewModel
 
@@ -46,11 +44,13 @@ fun GeneralChat(
     navigator: DestinationsNavigator,
 ) {
     val context = LocalContext.current
+
     LaunchedEffect(key1 = true) {
         viewModel.toastEvent.collectLatest { message ->
             Toast.makeText(context, message, Toast.LENGTH_LONG).show()
         }
     }
+
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(key1 = lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -66,7 +66,7 @@ fun GeneralChat(
     val state by viewModel.viewModelState.collectAsState()
 
     ChatScaffold(navigator = navigator, backDestination = ChatsDestination, title = "Общий чат") { padding ->
-        GeneralChatContent(
+        ChatContent(
             modifier = Modifier.padding(padding),
             messages = state.messages,
             message = state.message,
@@ -79,7 +79,7 @@ fun GeneralChat(
 }
 
 @Composable
-fun GeneralChatContent(
+fun ChatContent(
     modifier: Modifier = Modifier,
     messages: List<Message> = emptyList(),
     message: String,

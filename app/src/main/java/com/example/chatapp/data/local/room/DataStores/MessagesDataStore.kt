@@ -1,7 +1,7 @@
 package com.example.chatapp.data.local.room.DataStores
 
 import com.example.chatapp.data.local.room.entity.MessageEntity
-import com.example.chatapp.data.local.room.messages.MessagesDao
+import com.example.chatapp.data.local.room.Dao.MessagesDao
 
 interface IMessagesDataStore {
     suspend fun fetchAllMessages(): List<MessageEntity>

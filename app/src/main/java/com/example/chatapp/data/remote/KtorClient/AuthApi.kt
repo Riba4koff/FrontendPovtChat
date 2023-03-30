@@ -21,12 +21,32 @@ import kotlinx.coroutines.withContext
 import retrofit2.HttpException
 import java.net.ConnectException
 
+suspend fun <T>checkExceptions(block: suspend () -> T): Result<T> {
+    return try {
+        withContext(Dispatchers.IO) {
+            block()
+        }.let { response ->
+            Result.Success(data = response)
+        }
+    } catch (e: ConnectTimeoutException) {
+        Result.Error(message = "Время подключения к серверу истекло")
+    } catch (e: ConnectException) {
+        Result.Error(message = "Ошибка подключения к серверу")
+    } catch (e: HttpException) {
+        Result.Error(message = "Сетевая ошибка")
+    } catch (e: Exception) {
+        Result.Error(message = "Неизвестная ошибка")
+    }
+}
+
 class AuthApi(private val client: KtorHttpClient) : IAuthApi {
     override suspend fun signIn(request: SignInRequest): SignInResponse =
         withContext(Dispatchers.IO) {
-            client.client.post {
-                url(IAuthApi.Endpoints.Login.url)
-                body = request
+            client.client.use { itClient ->
+                itClient.post {
+                    url(IAuthApi.Endpoints.Login.url)
+                    body = request
+                }
             }
         }
 
@@ -60,83 +80,42 @@ class AuthApi(private val client: KtorHttpClient) : IAuthApi {
             }
         }
 
-    override suspend fun deleteUserByLogin(login: String): Result<DeleteUserByLoginResponse> =
-        withContext(Dispatchers.IO) {
-            try {
-                client.client.post<DeleteUserByLoginResponse> {
-                    url(IAuthApi.Endpoints.DeleteUserByLogin.url + "?login=$login")
-                }.let { response ->
-                    Result.Success(data = response)
-                }
-            } catch (e: ConnectTimeoutException) {
-                Result.Error(message = "Время подключения к серверу истекло")
-            } catch (e: ConnectException) {
-                Result.Error(message = "Ошибка подключения к серверу")
-            } catch (e: HttpException) {
-                Result.Error(message = "Сетевая ошибка")
-            } catch (e: Exception) {
-                Result.Error(message = e.message.toString())
+    override suspend fun deleteUserByLogin(login: String): Result<DeleteUserByLoginResponse> {
+        return checkExceptions {
+            client.client.post {
+                url(IAuthApi.Endpoints.DeleteUserByLogin.url + "?login=$login")
             }
         }
+    }
 
-    override suspend fun deleteAllUsers(): Result<DeleteAllUsersResponse> =
-        withContext(Dispatchers.IO) {
-            try {
-                client.client.post<DeleteAllUsersResponse> {
-                    url(IAuthApi.Endpoints.DeleteAllUsers.url)
-                }.let { response ->
-                    Result.Success(data = response)
-                }
-            } catch (e: ConnectTimeoutException) {
-                Result.Error(message = "Время подключения к серверу истекло")
-            } catch (e: ConnectException) {
-                Result.Error(message = "Ошибка подключения к серверу")
-            } catch (e: HttpException) {
-                Result.Error(message = "Сетевая ошибка")
-            } catch (e: Exception) {
-                Result.Error(message = e.message.toString())
-            }
-        }
 
-    override suspend fun deleteAllMessages(): Result<DeleteAllMessagesResponse> =
-        withContext(Dispatchers.IO) {
-            try {
-                client.client.post<DeleteAllMessagesResponse> {
-                    url(IAuthApi.Endpoints.DeleteAllMessages.url)
-                }.let { response ->
-                    Result.Success(data = response)
-                }
-            } catch (e: ConnectTimeoutException) {
-                Result.Error(message = "Время подключения к серверу истекло")
-            } catch (e: ConnectException) {
-                Result.Error(message = "Ошибка подключения к серверу")
-            } catch (e: HttpException) {
-                Result.Error(message = "Сетевая ошибка")
-            } catch (e: Exception) {
-                Result.Error(message = e.message.toString())
+    override suspend fun deleteAllUsers(): Result<DeleteAllUsersResponse> {
+        return checkExceptions {
+            client.client.post {
+                url(IAuthApi.Endpoints.DeleteAllUsers.url)
             }
         }
+    }
 
-    override suspend fun getAllMessages(): Result<List<Message>> =
-        withContext(Dispatchers.IO) {
-            try {
-                client.client.get<List<MessageDTO>> {
-                    url(IAuthApi.Endpoints.GetMessages.url)
-                }.sortedByDescending {
-                    it.time_sending
-                }.map { messageDTO ->
-                    messageDTO.toMessage()
-                }.let { messages ->
-                    Result.Success(data = messages)
-                }
-            } catch (e: ConnectTimeoutException) {
-                Result.Error(message = "Время подключения к серверу истекло")
-            } catch (e: ConnectException) {
-                Result.Error(message = "Ошибка подключения к серверу")
-            } catch (e: HttpException) {
-                Result.Error(message = "Сетевая ошибка")
-            } catch (e: Exception) {
-                Result.Error(message = e.message.toString())
+
+    override suspend fun deleteAllMessages(): Result<DeleteAllMessagesResponse> {
+        return checkExceptions {
+            client.client.post {
+                url(IAuthApi.Endpoints.DeleteAllMessages.url)
             }
         }
+    }
+
+
+    override suspend fun getAllMessages(): Result<List<Message>> {
+        return checkExceptions {
+            client.client.get<List<MessageDTO>> {
+                url(IAuthApi.Endpoints.GetMessages.url)
+            }.sortedByDescending {
+                it.time_sending
+            }.map { messageDTO ->
+                messageDTO.toMessage()
+            }
+        }
+    }
 }

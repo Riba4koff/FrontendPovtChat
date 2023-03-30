@@ -16,7 +16,6 @@ abstract class IChatViewModel(
     abstract fun connect()
     abstract fun onMessageChange(message: String)
     abstract fun disconnect()
-    abstract fun getAllMessages()
     abstract fun sendMessage()
 }
 
@@ -45,18 +44,28 @@ class ChatViewModel(
 
     override fun connect() {
         viewModelScope.launch {
-            getAllMessages()
+            reduce { state.copy(isLoading = true) }
+
+            getAllMessages.execute { error ->
+                _toastEvent.emit(error)
+            }.let { messages ->
+                reduce {
+                    state.copy(messages = messages)
+                }
+            }
+            
+            reduce { state.copy(isLoading = false) }
+
             userRepository.getUser().getOrNull()?.let { user ->
                 connectUseCase.execute(
-                    scope = viewModelScope,
                     username = user.username,
                     chatSocketService = chatSocketService
                 ) { message ->
-                    messagesRepository.insertMessage(message)
                     state.messages.toMutableList().apply {
                         add(0, message)
                     }.let { messages ->
                         messagesRepository.updateMessages(messages)
+                        messagesRepository.insertMessage(message)
                         reduce {
                             state.copy(messages = messages)
                         }
@@ -77,20 +86,6 @@ class ChatViewModel(
     override fun disconnect() {
         viewModelScope.launch {
             chatSocketService.closeSession()
-        }
-    }
-
-    override fun getAllMessages() {
-        viewModelScope.launch {
-            reduce { state.copy(isLoading = true) }
-            getAllMessages.execute { error ->
-                _toastEvent.emit(error)
-            }.let { messages ->
-                reduce {
-                    state.copy(messages = messages)
-                }
-            }
-            reduce { state.copy(isLoading = false) }
         }
     }
 

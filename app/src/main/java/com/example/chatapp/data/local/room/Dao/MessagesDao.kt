@@ -1,4 +1,4 @@
-package com.example.chatapp.data.local.room.messages
+package com.example.chatapp.data.local.room.Dao
 
 import androidx.room.*
 import com.example.chatapp.data.local.room.entity.MessageEntity

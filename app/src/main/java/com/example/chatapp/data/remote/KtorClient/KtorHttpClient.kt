@@ -17,17 +17,18 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
-class KtorHttpClient(
-    application: Application = Application(),
-    private val sessionManager: SessionManager = SessionManager(application)
-) {
+class KtorHttpClient() : KoinComponent {
     private val json = kotlinx.serialization.json.Json {
         prettyPrint = true
         ignoreUnknownKeys = true
         isLenient = true
         encodeDefaults = false
     }
+
+    val sessionManager by inject<SessionManager>()
 
     companion object {
         private const val CONNECT_TIME_OUT = 2500L
@@ -36,12 +37,16 @@ class KtorHttpClient(
         private const val TAG_HTTP_STATUS_LOGGER = "HTTP_STATUS: "
     }
 
-    val client : HttpClient = HttpClient(OkHttp) {
+    val client: HttpClient get() = HttpClient(OkHttp) {
+        expectSuccess = false
+
         engine {
             threadsCount = 8
             pipelining = true
         }
+
         val token = runBlocking { sessionManager.getJwtToken().first() }
+        Log.d("TOKEN: ", token)
         install(Auth) {
             bearer {
                 loadTokens { BearerTokens(token, "") }
@@ -49,14 +54,14 @@ class KtorHttpClient(
         }
         install(WebSockets)
         install(Logging) {
-            level = LogLevel.ALL
+            level = LogLevel.NONE
             logger = object : Logger {
                 override fun log(message: String) {
                     Log.i(TAG_KTOR_LOGGER, message)
                 }
             }
         }
-        install(ResponseObserver){
+        install(ResponseObserver) {
             onResponse { response ->
                 Log.i(TAG_HTTP_STATUS_LOGGER, "${response.status.value}")
             }

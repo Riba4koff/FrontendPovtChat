@@ -1,7 +1,8 @@
-package com.example.chatapp.data.local.room.messages
+package com.example.chatapp.data.local.room.DataBases
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import com.example.chatapp.data.local.room.Dao.MessagesDao
 import com.example.chatapp.data.local.room.entity.MessageEntity
 
 @Database(
