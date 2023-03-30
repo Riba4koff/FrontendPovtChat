@@ -1,14 +1,10 @@
 package com.example.chatapp.presentation.view
 
-import android.hardware.lights.Light
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -17,18 +13,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.ActivityNavigator
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import com.example.chatapp.data.preferencesDataStore.SessionManager
-import com.example.chatapp.presentation.Navigation.ChatBottomNavigation
-import com.example.chatapp.presentation.view.destinations.ChatsDestination
-import com.example.chatapp.presentation.view.destinations.EditUserInfoDestination
-import com.example.chatapp.presentation.view.destinations.LoginDestination
-import com.example.chatapp.presentation.view.destinations.ProfileDestination
+import com.example.chatapp.presentation.view.destinations.*
 import com.example.chatapp.presentation.viewModel.ProfileViewModel
 import com.example.chatapp.ui.theme.Purple200
 import com.ramcosta.composedestinations.annotation.Destination
@@ -42,65 +30,64 @@ import org.koin.androidx.compose.getViewModel
 fun Profile(
     navController: NavController,
     viewModel: ProfileViewModel = getViewModel(),
-    navigator: DestinationsNavigator? = null,
+    navigator: DestinationsNavigator,
 ) {
     val state by viewModel.viewModelState.collectAsState()
     val context = LocalContext.current
 
-    Scaffold(
-        topBar = {
-            TopAppBar(backgroundColor = Purple200) {
-                Row(Modifier.padding(start = 16.dp)) {
-                    Text("Профиль", fontSize = 24.sp, color = Color.White)
-                }
-            }
-        },
-        bottomBar = {
-            ChatBottomNavigation(navController = navController)
-        }
-    ) { padding ->
-        Box(
-            Modifier
-                .fillMaxSize()
-                .padding(padding),
-            contentAlignment = Alignment.Center
-        ) {
-            ProfileContent(
-                username = state.username,
-                login = state.login,
-                email = state.email,
-                editProfile = {
-                    navigator?.navigate(EditUserInfoDestination)
-                },
-                exit = {
-                    viewModel.logout(
-                        context = context,
-                        exit = {
-                            navigator?.navigate(LoginDestination){
-                                popUpTo(ChatsDestination){
-                                    inclusive = true
-                                }
+    ChatScaffold(navigator = navigator, navController = navController, title = "Профиль") { padding ->
+        ProfileContent(
+            padding = padding,
+            username = state.username,
+            login = state.login,
+            email = state.email,
+            editProfile = {
+                navigator.navigate(EditUserInfoDestination)
+            },
+            exit = {
+                viewModel.logout(
+                    context = context,
+                    navigateToLogin = {
+                        navigator.navigate(LoginDestination){
+                            popUpTo(ChatsDestination){
+                                inclusive = true
                             }
                         }
-                    )
-                }
-            )
-        }
+                    }
+                )
+            },
+            navigateToAdminPanel = {
+                navigator.navigate(AdminPanelDestination)
+            }
+        )
     }
 }
 
 @Composable
 fun ProfileContent(
+    padding: PaddingValues,
     username: String,
     login: String,
     email: String,
     editProfile: () -> Unit,
     exit: () -> Unit,
+    navigateToAdminPanel: () -> Unit
 ) {
-    Column(Modifier.fillMaxSize()) {
+    Column(Modifier.fillMaxSize().padding(padding)) {
         RowInfo(info = login, text = "Логин")
         RowInfo(info = username, text = "Имя пользователя")
         RowInfo(info = email, text = "Почта")
+        AnimatedVisibility(visible = login == "admin") {
+            ChatButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
+                    .height(45.dp),
+                onClick = navigateToAdminPanel,
+                title = "Админ панель",
+                color = Purple200.copy(0.7f)
+            )
+        }
         ChatButton(
             modifier = Modifier
                 .fillMaxWidth()
@@ -190,8 +177,3 @@ fun ChatButton(
     }
 }
 
-@Preview
-@Composable
-fun ProfilePreview() {
-    Profile(navController = rememberNavController())
-}

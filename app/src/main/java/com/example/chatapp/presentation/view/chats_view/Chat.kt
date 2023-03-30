@@ -30,7 +30,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.example.chatapp.domain.models.Message
 import com.example.chatapp.presentation.view.destinations.ChatsDestination
-import com.example.chatapp.presentation.view.destinations.ProfileDestination
 import com.example.chatapp.presentation.viewModel.ChatViewModel
 import com.example.chatapp.ui.theme.Purple200
 import com.example.chatapp.ui.theme.isOwnMessageColor
@@ -66,37 +65,7 @@ fun GeneralChat(
 
     val state by viewModel.viewModelState.collectAsState()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(backgroundColor = Purple200) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Row(
-                        Modifier.padding(start = 0.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        IconButton(onClick = {
-                            navigator.navigate(ChatsDestination) {
-                                popUpTo(ChatsDestination) {
-                                    inclusive = true
-                                }
-                            }
-                        }) {
-                            Icon(
-                                imageVector = Icons.Default.ArrowBack,
-                                contentDescription = "go back"
-                            )
-                        }
-                        Text(
-                            modifier = Modifier.padding(start = 8.dp),
-                            text = "Общий чат",
-                            fontSize = 24.sp,
-                            color = Color.White
-                        )
-                    }
-                }
-            }
-        },
-    ) { padding ->
+    ChatScaffold(navigator = navigator, backDestination = ChatsDestination, title = "Общий чат") { padding ->
         GeneralChatContent(
             modifier = Modifier.padding(padding),
             messages = state.messages,

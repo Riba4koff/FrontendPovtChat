@@ -7,8 +7,10 @@ import com.example.chatapp.data.util.Result
 import com.example.chatapp.domain.models.Message
 import io.ktor.http.cio.websocket.*
 import io.ktor.network.sockets.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import java.net.SocketTimeoutException
@@ -18,37 +20,21 @@ class ChatSocketService(
 ) : IChatSocketService {
     private var socket: WebSocketSession? = null
 
-    override suspend fun initSession(username: String): Result<Unit> {
-        return try {
-            socket = api.initWebSocketSession(username)
-            if (socket?.isActive == true) {
-                Result.Success()
-            } else {
-                Result.Error("Couldn`t establish a connection")
+    override suspend fun initSession(username: String): kotlin.Result<Unit> =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                socket = api.initWebSocketSession(username)
             }
         }
-        catch (e: Exception) {
-            e.printStackTrace()
-            Result.Error(e.localizedMessage ?: "Some error was occurred.")
-        }
-        catch (e: SocketTimeoutException){
-            Result.Error(e.message ?: "Ошибка подключения к серверу")
-        }
-        catch (e: ConnectTimeoutException){
-            Result.Error(e.message ?: "Ошибка подключения к серверу")
-        }
-    }
 
-    override suspend fun sendMessage(message: String) {
-        try {
-            socket?.send(Frame.Text(message))
-        } catch (e: Exception){
-            e.printStackTrace()
-        }
+    override suspend fun sendMessage(message: String) = withContext(Dispatchers.IO) {
+        kotlin.runCatching { socket?.send(Frame.Text(message)) }
     }
 
     override suspend fun closeSession() {
-        socket?.close()
+        withContext(Dispatchers.IO) {
+            socket?.close()
+        }
     }
 
     override fun observeMessages(): Flow<Message> {

@@ -47,39 +47,34 @@ fun Login(
     val context = LocalContext.current
     val state by viewModel.viewModelState.collectAsState()
 
-    Box(
-        Modifier
-            .fillMaxSize()
-            .background(Color.White),
-        contentAlignment = Alignment.Center
-    ) {
-        LoginContent(
-            toRegister = {
-                navigator.navigate(RegisterDestination){
-                    popUpTo(LoginDestination) {
-                        inclusive = true
-                    }
+    LoginContent(
+        toRegister = {
+            navigator.navigate(RegisterDestination){
+                popUpTo(LoginDestination) {
+                    inclusive = true
                 }
-            },
-            login = state.login,
-            onLoginTextChange = viewModel::onLoginChange,
-            password = state.password,
-            onPasswordChange = viewModel::onPasswordChange,
-            visible = state.inProcessing,
-            trySignIn = {
-                viewModel.tryLogin(
-                    navigateToChats = {
-                        navigator.navigate(ChatsDestination) {
-                            popUpTo(LoginDestination) {
-                                inclusive = true
-                            }
-                        }
-                    },
-                    context = context
-                )
             }
-        )
-    }
+        },
+        login = state.login,
+        onLoginTextChange = viewModel::onLoginChange,
+        password = state.password,
+        onPasswordChange = viewModel::onPasswordChange,
+        visible = state.inProcessing,
+        trySignIn = {
+            viewModel.tryLogin(
+                navigateToChats = {
+                    navigator.navigate(ChatsDestination) {
+                        popUpTo(LoginDestination) {
+                            inclusive = true
+                        }
+                    }
+                },
+                context = context
+            )
+        }
+    )
+
+
 }
 
 @Composable
@@ -92,35 +87,44 @@ fun LoginContent(
     visible: Boolean,
     trySignIn: () -> Unit
 ) {
-    Column(modifier = Modifier
-        .padding(start = 32.dp, end = 32.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-        horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            text = "Вход",
-            fontSize = 32.sp,
-            color = Purple200
-        )
-        AntaresAppTextField(
-            text = login,
-            onTextChange = onLoginTextChange,
-            label = { Text(text = "Логин") },
-        )
-        AntaresAppTextField(
-            text = password,
-            onTextChange = onPasswordChange,
-            visualTransformation = PasswordVisualTransformation(),
-            label = { Text("Пароль") }
-        )
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(Color.White),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(start = 32.dp, end = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Вход",
+                fontSize = 32.sp,
+                color = Purple200
+            )
+            AntaresAppTextField(
+                text = login,
+                onTextChange = onLoginTextChange,
+                label = { Text(text = "Логин") },
+            )
+            AntaresAppTextField(
+                text = password,
+                onTextChange = onPasswordChange,
+                visualTransformation = PasswordVisualTransformation(),
+                label = { Text("Пароль") }
+            )
 
-        AntaresAppButton(text = "Войти", onClick = trySignIn)
-        Spacer(Modifier.height(4.dp))
+            AntaresAppButton(text = "Войти", onClick = trySignIn)
+            Spacer(Modifier.height(4.dp))
 
-        ToRegister {
-            toRegister()
+            ToRegister {
+                toRegister()
+            }
+
+            LoadingProgressIndicator(visible)
         }
-
-        LoadingProgressIndicator(visible)
     }
 }
 

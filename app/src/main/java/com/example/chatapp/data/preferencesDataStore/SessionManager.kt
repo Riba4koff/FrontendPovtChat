@@ -15,7 +15,7 @@ import java.io.IOException
 private val Context.dataStore by preferencesDataStore(name = "preferences_data_store")
 
 class SessionManager(
-    val context: Context
+    context: Context
 ) : ISessionManager {
 
     private val dataStore: DataStore<Preferences> = context.dataStore

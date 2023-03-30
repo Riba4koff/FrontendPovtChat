@@ -20,36 +20,15 @@ import com.example.chatapp.presentation.Navigation.ChatBottomNavigation
 import com.example.chatapp.presentation.view.destinations.CreateChatDestination
 import com.example.chatapp.ui.theme.Purple200
 import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.navigation.navigate
 
 @Destination(
     route = "chats_route"
 )
 @Composable
-fun Chats(navController: NavController) {
-    Scaffold(
-        topBar = {
-            TopAppBar(backgroundColor = Purple200) {
-                Row(Modifier.padding(start = 16.dp)) {
-                    Text("Чаты", fontSize = 24.sp, color = Color.White)
-                }
-            }
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = {
-                navController.navigate(CreateChatDestination)
-            }, backgroundColor = Color.LightGray) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = null,
-                    tint = Color.White
-                )
-            }
-        },
-        bottomBar = {
-            ChatBottomNavigation(navController = navController)
-        }
-    ) { padding ->
+fun Chats(navController: NavController, navigator: DestinationsNavigator) {
+    ChatScaffold(navigator = navigator, title = "Чаты", navController = navController) { padding ->
         ChatsContent(
             modifier = Modifier.padding(padding),
             onClickMore = {
@@ -124,10 +103,4 @@ fun ListChatsItem(
         }
         Divider()
     }
-}
-
-@Preview
-@Composable
-fun ChatsPreview() {
-    Chats(rememberNavController())
 }

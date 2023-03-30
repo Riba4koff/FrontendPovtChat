@@ -1,8 +1,8 @@
 package com.example.chatapp.di
 
 import androidx.room.Room
-import com.example.chatapp.data.local.room.datasources.IMessagesSource
-import com.example.chatapp.data.local.room.datasources.MessagesSource
+import com.example.chatapp.data.local.room.DataStores.IMessagesDataStore
+import com.example.chatapp.data.local.room.DataStores.MessagesDataStore
 import com.example.chatapp.data.local.room.messages.MessagesDataBase
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.bind
@@ -18,7 +18,7 @@ val data_module = module {
         ).fallbackToDestructiveMigration().build().messagesDao()
     }
 
-    singleOf(::MessagesSource){
-        bind<IMessagesSource>()
+    singleOf(::MessagesDataStore){
+        bind<IMessagesDataStore>()
     }
 }

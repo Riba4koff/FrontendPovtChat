@@ -4,7 +4,7 @@ package com.example.chatapp.presentation.viewModel
 import android.content.Context
 import android.widget.Toast
 import androidx.lifecycle.viewModelScope
-import com.example.chatapp.data.util.LoginResult
+import com.example.chatapp.data.util.Result
 import com.example.chatapp.domain.irepository.IUserRepository
 import com.example.chatapp.presentation.viewModel.states.LoginAndRegisterStates.LoginState
 import kotlinx.coroutines.launch
@@ -45,6 +45,7 @@ class LoginViewModel(
     ) {
         viewModelScope.launch {////////////////////////////////////////////////////////////////////////////////////////////////////////////\
             enableLoading()
+
             val result = repository.signIn(
                 login = state.login.trim(),
                 password = state.password.trim()
@@ -52,17 +53,11 @@ class LoginViewModel(
             disableLoading()
 
             when (result) {
-                is LoginResult.Authorized -> {
+                is Result.Success -> {
                     Toast.makeText(context, result.data, Toast.LENGTH_SHORT).show()
                     navigateToChats()
                 }
-                is LoginResult.Unauthorized -> {
-                    Toast.makeText(context, result.data, Toast.LENGTH_SHORT).show()
-                }
-                is LoginResult.InvalidLoginOrPassword -> {
-                    Toast.makeText(context, result.data, Toast.LENGTH_SHORT).show()
-                }
-                is LoginResult.Error -> {
+                is Result.Error -> {
                     Toast.makeText(context, result.data, Toast.LENGTH_SHORT).show()
                 }
             }

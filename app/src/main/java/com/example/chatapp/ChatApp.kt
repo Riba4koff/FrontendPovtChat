@@ -19,7 +19,8 @@ class ChatApp : Application() {
                 repository_module,
                 session_manager_module,
                 api_module,
-                data_module
+                data_module,
+                use_cases_module
             )
         }
     }

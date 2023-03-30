@@ -39,44 +39,37 @@ fun Register(
     val errors by viewModel.errorMessageState.collectAsState()
     val context = LocalContext.current
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White),
-        contentAlignment = Alignment.Center
-    ) {
-        RegisterContent(
-            errors = errors,
-            toLogin = {
-                navigator.navigate(LoginDestination) {
-                    popUpTo(RegisterDestination) {
-                        inclusive = true
-                    }
+    RegisterContent(
+        errors = errors,
+        toLogin = {
+            navigator.navigate(LoginDestination) {
+                popUpTo(RegisterDestination) {
+                    inclusive = true
                 }
-            },
-            email = state.email,
-            onEmailChange = viewModel::onEmailChange,
-            login = state.login,
-            onLoginChange = viewModel::onLoginChange,
-            username = state.username,
-            onUsernameChange = viewModel::onUsernameChange,
-            password = state.password,
-            onPasswordChange = viewModel::onPasswordChange,
-            trySignUp = {
-                viewModel.trySignUp(
-                    navigateToChats = {
-                        navigator.navigate(ChatsDestination) {
-                            popUpTo(RegisterDestination) {
-                                inclusive = true
-                            }
+            }
+        },
+        email = state.email,
+        onEmailChange = viewModel::onEmailChange,
+        login = state.login,
+        onLoginChange = viewModel::onLoginChange,
+        username = state.username,
+        onUsernameChange = viewModel::onUsernameChange,
+        password = state.password,
+        onPasswordChange = viewModel::onPasswordChange,
+        trySignUp = {
+            viewModel.trySignUp(
+                navigateToChats = {
+                    navigator.navigate(ChatsDestination) {
+                        popUpTo(RegisterDestination) {
+                            inclusive = true
                         }
-                    },
-                    context = context
-                )
-            },
-            visible = state.inProcessing
-        )
-    }
+                    }
+                },
+                context = context
+            )
+        },
+        visible = state.inProcessing
+    )
 }
 
 @Composable
@@ -94,38 +87,45 @@ fun RegisterContent(
     trySignUp: () -> Unit,
     visible: Boolean,
 ) {
-    Column(
-        Modifier
-            .fillMaxWidth()
-            .padding(start = 32.dp, end = 32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White),
+        contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = "Регистрация", fontSize = 32.sp, color = Purple200
-        )
-        RegisterTextFields(
-            errors = errors,
-            email = email,
-            onEmailChange = onEmailChange,
-            login = login,
-            onLoginChange = onLoginChange,
-            username = username,
-            onUsernameChange = onUsernameChange,
-            password = password,
-            onPasswordChange = onPasswordChange
-        )
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .padding(start = 32.dp, end = 32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "Регистрация", fontSize = 32.sp, color = Purple200
+            )
+            RegisterTextFields(
+                errors = errors,
+                email = email,
+                onEmailChange = onEmailChange,
+                login = login,
+                onLoginChange = onLoginChange,
+                username = username,
+                onUsernameChange = onUsernameChange,
+                password = password,
+                onPasswordChange = onPasswordChange
+            )
 
-        AntaresAppButton(
-            modifier = Modifier.padding(top = 16.dp),
-            text = "Зарегистрировать пользователя",
-            onClick = trySignUp
-        )
-        ToLogin {
-            toLogin()
+            AntaresAppButton(
+                modifier = Modifier.padding(top = 16.dp),
+                text = "Зарегистрировать пользователя",
+                onClick = trySignUp
+            )
+            ToLogin {
+                toLogin()
+            }
+            Spacer(Modifier.height(16.dp))
+            LoadingProgressIndicator(visible)
         }
-        Spacer(Modifier.height(16.dp))
-        LoadingProgressIndicator(visible)
     }
 }
 

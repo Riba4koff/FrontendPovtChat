@@ -3,8 +3,8 @@ package com.example.chatapp.data.repository
 import com.example.chatapp.data.preferencesDataStore.SessionManager
 import com.example.chatapp.data.remote.KtorClient.IAuthApi
 import com.example.chatapp.data.remote.KtorClient.ModelRequests.EditUserInfo.EditUserInfoRequest
-import com.example.chatapp.data.util.LoginResult
-import com.example.chatapp.data.util.RegisterResult
+import com.example.chatapp.data.remote.KtorClient.ModelRequests.delete.DeleteAllUsersResponse
+import com.example.chatapp.data.remote.KtorClient.ModelRequests.delete.DeleteUserByLoginResponse
 import com.example.chatapp.data.remote.KtorClient.ModelRequests.signIn.SignInRequest
 import com.example.chatapp.data.remote.KtorClient.ModelRequests.signIn.SignInResponse
 import com.example.chatapp.data.remote.KtorClient.ModelRequests.signUp.SignUpRequest
@@ -12,63 +12,63 @@ import com.example.chatapp.data.util.Result
 import com.example.chatapp.domain.models.User
 import com.example.chatapp.domain.irepository.IUserRepository
 import io.ktor.network.sockets.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import retrofit2.HttpException
 
 class UserRepository(
     private val api: IAuthApi,
+    private val sessionManager: SessionManager
 ) : IUserRepository, KoinComponent {
 
-    private val sessionManager by inject<SessionManager>()
+    //private val sessionManager by inject<SessionManager>()
 
     override suspend fun signUp(
         login: String,
         password: String,
         username: String,
         email: String,
-    ): RegisterResult<String> {
+    ): Result<String> {
         return try {
             api.signUp(
                 SignUpRequest(
                     login, password, email, username
                 )
             ).let { response ->
-                if (response.successful) RegisterResult.Success(response.message)
-                else if (response.userHasAlreadyExists) RegisterResult.UserHasAlreadyExists(response.message)
-                else RegisterResult.Error(response.message)
+                if (response.successful) Result.Success(response.message)
+                else Result.Error(response.message)
             }
         } catch (e: ConnectTimeoutException) {
-            RegisterResult.Error("Ошибка подключения")
+            Result.Error("Ошибка подключения")
         } catch (e: Exception) {
-            RegisterResult.Error("Неизвестная ошибка")
+            Result.Error("Неизвестная ошибка")
         }
     }
 
-    override suspend fun signIn(login: String, password: String): LoginResult<String> {
+    override suspend fun signIn(login: String, password: String): Result<String> {
         return try {
             api.signIn(
                 request = SignInRequest(
                     login, password
                 )
             ).let { response ->
-                if (response.invalidLoginOrPassword) LoginResult.InvalidLoginOrPassword("Неверный логин или пароль")
-                else if (response.token.isNotBlank()) sessionManager.saveJwtToken(response.token)
-                authenticate(response)
+                if (response.token.isNotBlank()) sessionManager.saveJwtToken(response.token)
+                return authenticate(response)
             }
         } catch (e: HttpException) {
-            LoginResult.Error("Ошибка сервера")
+            Result.Error(data = "Ошибка сервера")
         } catch (e: ConnectTimeoutException) {
-            LoginResult.Error("Ошибка подключения")
+            Result.Error(data = "Нет соединения с сервером")
         } catch (e: Exception) {
-            LoginResult.Error("Неизвестная ошибка")
+            Result.Error(data = "Неизвестная ошибка")
         }
     }
 
-    override suspend fun authenticate(signInResponse: SignInResponse): LoginResult<String> {
-        return try {
-            val response = api.authenticate()
+    override suspend fun authenticate(signInResponse: SignInResponse): Result<String> {
+        return api.authenticate().let { response ->
             if (response.successful) {
                 sessionManager.updateSession(
                     token = signInResponse.token,
@@ -76,47 +76,34 @@ class UserRepository(
                     email = signInResponse.email,
                     username = signInResponse.username
                 )
-                LoginResult.Authorized("Успешная авторизация")
-            } else LoginResult.Unauthorized("Ошибка авторизации")
-        } catch (e: HttpException) {
-            if (e.code() == 401) LoginResult.Unauthorized()
-            else LoginResult.Error("Ошибка авторизации")
-        } catch (e: Exception) {
-            LoginResult.Error("Неизвестная ошибка")
-        } catch (e: ConnectTimeoutException) {
-            LoginResult.Error("Ошибка подключения")
+                Result.Success("Успешная авторизация")
+            } else Result.Error("Ошибка авторизации")
         }
     }
 
-    override suspend fun logout(): Result<String> {
-        return try {
+    override suspend fun logout(): kotlin.Result<Unit> = withContext(Dispatchers.IO) {
+        runCatching {
             sessionManager.logout()
-            Result.Success("Logged out successfully!")
-        } catch (e: Exception) {
-            e.printStackTrace()
-            Result.Error(e.message ?: "Unknown error occurred.")
         }
     }
 
-    override suspend fun getUser(): Result<User> {
-        return try {
+    override suspend fun getUser(): kotlin.Result<User> = withContext(Dispatchers.IO) {
+        runCatching {
             val login = sessionManager.getCurrentLogin().first()
             val email = sessionManager.getCurrentEmail().first()
             val username = sessionManager.getCurrentUsername().first()
 
-            if (login.isBlank() || email.isBlank()) Result.Error("User not Logged In!")
-            else Result.Success(User(login, email, username))
-        } catch (e: Exception) {
-            e.printStackTrace()
-            Result.Error(e.message ?: "Some problem occurred!")
+            User(login, email, username)
+        }.onFailure {
+            throw it
         }
-
     }
+
 
     override suspend fun editUser(
         editUserInfoRequest: EditUserInfoRequest,
-    ): Result<String> {
-        return try {
+    ): kotlin.Result<Unit> = withContext(Dispatchers.IO) {
+        runCatching {
             val result = api.editUser(editUserInfoRequest)
             if (result.successful) {
                 sessionManager.editUserInfo(
@@ -124,13 +111,16 @@ class UserRepository(
                     editUserInfoRequest.email,
                     editUserInfoRequest.newUsername
                 )
-                Result.Success(message = result.message)
-            } else Result.Error(result.message)
-        } catch (e: ConnectTimeoutException) {
-            Result.Error("Ошибка подключения к серверу!")
-        } catch (e: Exception) {
-            e.printStackTrace()
-            Result.Error(e.message ?: "Some problem occurred!")
+            }
         }
+    }
+
+
+    override suspend fun deleteAllUsers(): Result<DeleteAllUsersResponse> {
+        return api.deleteAllUsers()
+    }
+
+    override suspend fun deleteUserByLogin(login: String): Result<DeleteUserByLoginResponse> {
+        return api.deleteUserByLogin(login)
     }
 }

@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import com.example.chatapp.data.util.Result
 import com.example.chatapp.presentation.view.AntaresAppButton
 import com.example.chatapp.presentation.view.AntaresAppTextField
+import com.example.chatapp.presentation.view.ChatScaffold
 import com.example.chatapp.presentation.view.SendMessageTextField
 import com.example.chatapp.presentation.view.destinations.ChatsDestination
 import com.example.chatapp.presentation.view.destinations.ProfileDestination
@@ -42,40 +43,11 @@ fun EditUserInfo(
     val state by viewmodel.viewModelState.collectAsState()
     val context = LocalContext.current
 
-    Scaffold(
-        topBar = {
-            TopAppBar(backgroundColor = Purple200) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Row(
-                        Modifier.padding(start = 0.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        IconButton(onClick = {
-                            navigator.navigate(ProfileDestination) {
-                                popUpTo(ProfileDestination) {
-                                    inclusive = true
-                                }
-                            }
-                        }) {
-                            Icon(
-                                imageVector = Icons.Default.ArrowBack,
-                                contentDescription = "go back"
-                            )
-                        }
-                        Text(
-                            modifier = Modifier.padding(start = 8.dp),
-                            text = "Изменение профиля",
-                            fontSize = 24.sp,
-                            color = Color.White
-                        )
-                    }
-                }
-            }
-        },
-    ) { padding ->
+    ChatScaffold(navigator = navigator, title = "Изменить профиль", backDestination = ProfileDestination) { padding ->
         Column(
             modifier = Modifier
-                .padding(padding).padding(8.dp),
+                .padding(padding)
+                .padding(8.dp),
             verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {

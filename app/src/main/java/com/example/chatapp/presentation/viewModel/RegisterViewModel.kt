@@ -4,7 +4,7 @@ package com.example.chatapp.presentation.viewModel
 import android.content.Context
 import android.widget.Toast
 import androidx.lifecycle.viewModelScope
-import com.example.chatapp.data.util.RegisterResult
+import com.example.chatapp.data.util.Result
 import com.example.chatapp.domain.irepository.IUserRepository
 import com.example.chatapp.presentation.viewModel.states.LoginAndRegisterStates.ErrorMessagesState
 import com.example.chatapp.presentation.viewModel.states.LoginAndRegisterStates.RegisterState
@@ -129,7 +129,7 @@ class RegisterViewModel(
                         username = state.username,
                     )
                     when (response) {
-                        is RegisterResult.Success -> {
+                        is Result.Success -> {
                             Toast.makeText(context, response.data, Toast.LENGTH_SHORT).show()
                             repository.signIn(
                                 state.login,
@@ -137,12 +137,7 @@ class RegisterViewModel(
                             )
                             navigateToChats()
                         }
-                        is RegisterResult.Error -> {
-                            viewModelScope.launch {
-                                Toast.makeText(context, response.data, Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                        is RegisterResult.UserHasAlreadyExists -> {
+                        is Result.Error -> {
                             viewModelScope.launch {
                                 Toast.makeText(context, response.data, Toast.LENGTH_SHORT).show()
                             }

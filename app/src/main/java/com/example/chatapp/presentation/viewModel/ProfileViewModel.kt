@@ -3,15 +3,14 @@ package com.example.chatapp.presentation.viewModel
 import android.content.Context
 import android.widget.Toast
 import androidx.lifecycle.viewModelScope
-import com.example.chatapp.data.util.Result
 import com.example.chatapp.domain.irepository.IUserRepository
-import com.example.chatapp.presentation.viewModel.states.Profile.ProfileState
+import com.example.chatapp.presentation.viewModel.states.User.ProfileState
 import kotlinx.coroutines.launch
 
 abstract class IProfileViewModel(
     initialState : ProfileState
 ) : MVIViewModel<ProfileState>(initialState){
-    abstract fun logout(context : Context, exit: () -> Unit)
+    abstract fun logout(context : Context, navigateToLogin: () -> Unit)
 }
 
 class ProfileViewModel(
@@ -19,19 +18,16 @@ class ProfileViewModel(
 ) :IProfileViewModel(ProfileState()) {
     init {
         viewModelScope.launch {
-            when (val result = repository.getUser()) {
-                is Result.Success -> {
-                    result.data.let { user ->
-                        reduce {
-                            state.copy(
-                                username = user!!.username,
-                                login = user.login,
-                                email = user.email
-                            )
-                        }
+            repository.getUser().let { result ->
+                result.onSuccess { user ->
+                    reduce {
+                        state.copy(
+                            username = user.username,
+                            login = user.login,
+                            email = user.email
+                        )
                     }
-                }
-                is Result.Error -> {
+                }.onFailure {
                     reduce {
                         state.copy(
                             username = "Null",
@@ -46,20 +42,17 @@ class ProfileViewModel(
 
     override fun logout(
         context: Context,
-        exit: () -> Unit
+        navigateToLogin: () -> Unit
     ) {
         viewModelScope.launch {
             repository.logout().let { result ->
-                when (result) {
-                    is Result.Success -> {
-                        Toast.makeText(context, result.data, Toast.LENGTH_SHORT).show()
-                    }
-                    is Result.Error -> {
-                        Toast.makeText(context, result.data, Toast.LENGTH_SHORT).show()
-                    }
+                result.onSuccess {
+                    Toast.makeText(context, "Вы успешно вышли", Toast.LENGTH_SHORT).show()
+                }.onFailure {
+                    Toast.makeText(context, "Ошибка выхода", Toast.LENGTH_SHORT).show()
                 }
             }
-            exit()
+            navigateToLogin()
         }
     }
 }

@@ -1,4 +1,4 @@
-package com.example.chatapp.presentation.viewModel.states.Profile
+package com.example.chatapp.presentation.viewModel.states.User
 
 data class ProfileState(
     val username: String = "",
