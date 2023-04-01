@@ -27,6 +27,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.example.chatapp.domain.models.Message
 import com.example.chatapp.presentation.view.destinations.ChatsDestination
 import com.example.chatapp.presentation.viewModel.ChatViewModel
@@ -44,26 +46,19 @@ fun GeneralChat(
     navigator: DestinationsNavigator,
 ) {
     val context = LocalContext.current
-
-    LaunchedEffect(key1 = true) {
-        viewModel.toastEvent.collectLatest { message ->
-            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
-        }
-    }
-
-    val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(key1 = lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_START) viewModel.connect()
-            else if (event == Lifecycle.Event.ON_STOP) viewModel.disconnect()
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-        }
-    }
-
     val state by viewModel.viewModelState.collectAsState()
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    viewModel.showToastMessages(context)
+
+    DisposableEffect(key1 = lifecycleOwner) {
+        viewModel.connectionManagement(lifecycleOwner).let { observer ->
+            lifecycleOwner.lifecycle.addObserver(observer)
+            onDispose {
+                lifecycleOwner.lifecycle.removeObserver(observer)
+            }
+        }
+    }
 
     ChatScaffold(navigator = navigator, backDestination = ChatsDestination, title = "Общий чат") { padding ->
         ChatContent(

@@ -13,7 +13,7 @@ interface IUserRepository {
     suspend fun logout() : kotlin.Result<Unit>
     suspend fun authenticate(signInResponse: SignInResponse) : Result<String>
     suspend fun getUser() : kotlin.Result<User>
-    suspend fun editUser(editUserInfoRequest: EditUserInfoRequest) : kotlin.Result<Unit>
+    suspend fun editUser(editUserInfoRequest: EditUserInfoRequest) : Result<String>
     suspend fun deleteAllUsers(): Result<DeleteAllUsersResponse>
     suspend fun deleteUserByLogin(login: String): Result<DeleteUserByLoginResponse>
 }

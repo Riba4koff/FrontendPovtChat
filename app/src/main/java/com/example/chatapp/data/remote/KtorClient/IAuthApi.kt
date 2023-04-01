@@ -29,9 +29,9 @@ interface IAuthApi {
     suspend fun deleteAllMessages(): Result<DeleteAllMessagesResponse>
 
     companion object {
-        private const val BASE_URL = "http://192.168.1.5:8080"
+        private const val BASE_URL = "http://192.168.1.3:8080"
         private const val IPHONE_URL = "http://172.20.10.9:8080"
-        private const val WEBSOCKET_URL = "ws://192.168.1.5:8080"
+        private const val WEBSOCKET_URL = "ws://192.168.1.3:8080"
     }
 
     sealed class Endpoints(val url: String) {

@@ -101,8 +101,8 @@ class UserRepository(
 
     override suspend fun editUser(
         editUserInfoRequest: EditUserInfoRequest,
-    ): kotlin.Result<Unit> = withContext(Dispatchers.IO) {
-        runCatching {
+    ): Result<String> = withContext(Dispatchers.IO) {
+        return@withContext try {
             val result = api.editUser(editUserInfoRequest)
             if (result.successful) {
                 sessionManager.editUserInfo(
@@ -110,7 +110,12 @@ class UserRepository(
                     editUserInfoRequest.email,
                     editUserInfoRequest.newUsername
                 )
+                Result.Success(message = result.message)
+            } else {
+                Result.Error(message = result.message)
             }
+        } catch (e: Exception) {
+            Result.Error(message = e.message)
         }
     }
 

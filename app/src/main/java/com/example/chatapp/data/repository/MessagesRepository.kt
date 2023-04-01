@@ -7,37 +7,47 @@ import com.example.chatapp.data.util.Result
 import com.example.chatapp.domain.models.Message
 import com.example.chatapp.domain.irepository.IMessagesRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
 class MessagesRepository(
     private val api: IAuthApi,
     private val source: IMessagesDataStore,
 ) : IMessagesRepository {
-    override suspend fun getAllMessages(): Result<List<Message>> = withContext(Dispatchers.IO) {
-        api.getAllMessages().let { result ->
-            when (result) {
-                is Result.Success -> {
-                    Result.Success(
-                        data = result.data
-                    )
+    override suspend fun getAllMessages(): Result<Flow<List<Message>>> = withContext(Dispatchers.IO) {
+        tryLoadMessagesFromDataStore().let { result ->
+            source.fetchAllMessages().map { messages ->
+                messages.map { messageEntity ->
+                    messageEntity.toMessage()
                 }
-                is Result.Error -> {
-                    Result.Error(
-                        data = source.fetchAllMessages().map { it.toMessage() }.reversed(),
-                        message = result.message
-                    )
+            }.let { flowResult ->
+                when (result) {
+                    is Result.Success -> {
+                        Result.Success(flowResult, result.message)
+                    }
+                    is Result.Error -> {
+                        Result.Error(flowResult, result.message)
+                    }
                 }
             }
         }
     }
-
-    override suspend fun updateMessages(messages: List<Message>) {
-        source.deleteAllMessages()
-        messages.map { message ->
-            source.insertMessage(message = message.toEntity())
+    override suspend fun tryLoadMessagesFromDataStore(): Result<Unit> {
+        return api.getAllMessages().let { result ->
+            when (result) {
+                is Result.Success -> {
+                    result.data?.map { message ->
+                        insertMessage(message = message)
+                    }
+                    Result.Success(message = "Подключено")
+                }
+                is Result.Error -> {
+                    Result.Error(message = "Ошибка загрузки сообщений")
+                }
+            }
         }
     }
-
     override suspend fun insertMessage(message: Message) {
         source.insertMessage(message = message.toEntity())
     }

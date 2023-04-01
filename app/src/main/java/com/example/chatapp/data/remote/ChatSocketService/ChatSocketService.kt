@@ -27,9 +27,10 @@ class ChatSocketService(
             }
         }
 
-    override suspend fun sendMessage(message: String) = withContext(Dispatchers.IO) {
-        kotlin.runCatching { socket?.send(Frame.Text(message)) }
-    }
+    override suspend fun sendMessage(message: String) =
+        withContext(Dispatchers.IO) {
+            runCatching { socket?.send(Frame.Text(message)) }
+        }
 
     override suspend fun closeSession() {
         withContext(Dispatchers.IO) {

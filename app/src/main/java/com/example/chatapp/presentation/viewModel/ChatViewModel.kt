@@ -1,5 +1,12 @@
 package com.example.chatapp.presentation.viewModel
 
+import android.content.Context
+import android.widget.Toast
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.OnLifecycleEvent
 import androidx.lifecycle.viewModelScope
 import com.example.chatapp.data.remote.ChatSocketService.IChatSocketService
 import com.example.chatapp.domain.UseCase.ConnectUseCase
@@ -7,6 +14,7 @@ import com.example.chatapp.domain.UseCase.GetAllMessagesUseCase
 import com.example.chatapp.domain.irepository.IMessagesRepository
 import com.example.chatapp.domain.irepository.IUserRepository
 import com.example.chatapp.presentation.viewModel.states.Chat.ChatState
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -14,18 +22,22 @@ abstract class IChatViewModel(
     initialState: ChatState
 ) : MVIViewModel<ChatState>(initialState) {
     abstract fun connect()
+    abstract fun loadMessages()
     abstract fun onMessageChange(message: String)
     abstract fun disconnect()
     abstract fun sendMessage()
+    abstract fun showToastMessages(context: Context)
+    abstract fun connectionManagement(lifecycleOwner: LifecycleOwner): LifecycleEventObserver
+
 }
 
 class ChatViewModel(
-    private val messagesRepository: IMessagesRepository,
     private val chatSocketService: IChatSocketService,
     private val userRepository: IUserRepository,
     private val connectUseCase: ConnectUseCase,
     private val getAllMessages: GetAllMessagesUseCase
 ) : IChatViewModel(ChatState()) {
+
     private val _toastEvent = MutableSharedFlow<String>()
     val toastEvent = _toastEvent.asSharedFlow()
 
@@ -44,33 +56,25 @@ class ChatViewModel(
 
     override fun connect() {
         viewModelScope.launch {
-            reduce { state.copy(isLoading = true) }
-
-            getAllMessages.execute { error ->
-                _toastEvent.emit(error)
-            }.let { messages ->
-                reduce {
-                    state.copy(messages = messages)
-                }
-            }
-            
-            reduce { state.copy(isLoading = false) }
-
             userRepository.getUser().getOrNull()?.let { user ->
                 connectUseCase.execute(
                     username = user.username,
                     chatSocketService = chatSocketService
-                ) { message ->
-                    state.messages.toMutableList().apply {
-                        add(0, message)
-                    }.let { messages ->
-                        messagesRepository.updateMessages(messages)
-                        messagesRepository.insertMessage(message)
-                        reduce {
-                            state.copy(messages = messages)
-                        }
-                    }
+                ) { error ->
+                    _toastEvent.emit(error)
                 }
+            }
+        }
+    }
+
+    override fun loadMessages() {
+        viewModelScope.launch {
+            getAllMessages.execute(
+                resultOfReceivingMessages = { result ->
+                    _toastEvent.emit(result)
+                }
+            ) { messages ->
+                reduce { state.copy(messages = messages) }
             }
         }
     }
@@ -98,6 +102,26 @@ class ChatViewModel(
                     }
                 }
                 reduce { state.copy(message = "") }
+            }
+        }
+    }
+
+    override fun showToastMessages(context: Context) {
+        viewModelScope.launch {
+            toastEvent.collectLatest { message ->
+                Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    override fun connectionManagement(lifecycleOwner: LifecycleOwner): LifecycleEventObserver {
+        return LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_START) {
+                loadMessages()
+                connect()
+            }
+            else if (event == Lifecycle.Event.ON_STOP) {
+                disconnect()
             }
         }
     }

@@ -81,12 +81,15 @@ class EditUserInfoViewModel(
                             email = state.email
                         )
                     ).let { result ->
-                        result.onSuccess {
-                            Toast.makeText(context, "Успешно", Toast.LENGTH_SHORT)
-                                .show()
-                            navigateToProfile()
-                        }.onFailure { exception ->
-                            Toast.makeText(context, exception.message, Toast.LENGTH_SHORT).show()
+                        when (result) {
+                            is Result.Success -> {
+                                Toast.makeText(context, "Успешно", Toast.LENGTH_SHORT)
+                                    .show()
+                                navigateToProfile()
+                            }
+                            is Result.Error -> {
+                                Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
+                            }
                         }
                     }
                 }.onFailure { exception ->

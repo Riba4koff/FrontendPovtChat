@@ -2,9 +2,10 @@ package com.example.chatapp.data.local.room.DataStores
 
 import com.example.chatapp.data.local.room.entity.MessageEntity
 import com.example.chatapp.data.local.room.Dao.MessagesDao
+import kotlinx.coroutines.flow.Flow
 
 interface IMessagesDataStore {
-    suspend fun fetchAllMessages(): List<MessageEntity>
+    suspend fun fetchAllMessages(): Flow<List<MessageEntity>>
     suspend fun insertMessage(message: MessageEntity)
     suspend fun updateMessage(message: MessageEntity)
     suspend fun fetchMessageById(id: Long): MessageEntity?
