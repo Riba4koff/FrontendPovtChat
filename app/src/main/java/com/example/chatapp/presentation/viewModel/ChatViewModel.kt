@@ -54,6 +54,8 @@ class ChatViewModel(
         }
     }
 
+    //Called when a chat activity is started and
+    //it needs to observe to socket.incoming to receive new message
     override fun connect() {
         viewModelScope.launch {
             userRepository.getUser().getOrNull()?.let { user ->
@@ -67,6 +69,7 @@ class ChatViewModel(
         }
     }
 
+    //observes and load on receive new messages
     override fun loadMessages() {
         viewModelScope.launch {
             getAllMessages.execute(
@@ -93,6 +96,7 @@ class ChatViewModel(
         }
     }
 
+    //This method sends a message to the server and other users
     override fun sendMessage() {
         viewModelScope.launch {
             if (state.message.isNotBlank()) {
@@ -106,6 +110,7 @@ class ChatViewModel(
         }
     }
 
+    //Shows various error and success messages
     override fun showToastMessages(context: Context) {
         viewModelScope.launch {
             toastEvent.collectLatest { message ->
@@ -114,6 +119,8 @@ class ChatViewModel(
         }
     }
 
+
+    //Manages connection to chat and downloading of messages
     override fun connectionManagement(lifecycleOwner: LifecycleOwner): LifecycleEventObserver {
         return LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_START) {
