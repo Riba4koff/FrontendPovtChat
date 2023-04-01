@@ -10,6 +10,7 @@ interface IMessagesDataStore {
     suspend fun updateMessage(message: MessageEntity)
     suspend fun fetchMessageById(id: Long): MessageEntity?
     suspend fun deleteAllMessages()
+    suspend fun getCountMessages(): Int
 }
 
 class MessagesDataStore(
@@ -35,4 +36,6 @@ class MessagesDataStore(
     override suspend fun deleteAllMessages() {
         messagesDataBase.deleteAllMessages()
     }
+
+    override suspend fun getCountMessages(): Int = messagesDataBase.getCountMessages()
 }

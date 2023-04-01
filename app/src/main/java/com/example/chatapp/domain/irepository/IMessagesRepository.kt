@@ -7,8 +7,9 @@ import kotlinx.coroutines.flow.Flow
 
 interface IMessagesRepository {
      suspend fun getAllMessages() : Result<Flow<List<Message>>>
-     suspend fun tryLoadMessagesFromDataStore(): Result<Unit>
-     suspend fun insertMessage(message: Message)
-     suspend fun updateMessage(message: Message)
+     suspend fun updateAllMessages(messages: List<Message>)
+     suspend fun tryLoadMessagesFromDataBase(): Result<Unit>
+     suspend fun insertMessageFromDataBase(message: Message)
+     suspend fun updateMessageFromDataBase(message: Message)
      suspend fun deleteAllMessages(): Result<DeleteAllMessagesResponse>
 }
