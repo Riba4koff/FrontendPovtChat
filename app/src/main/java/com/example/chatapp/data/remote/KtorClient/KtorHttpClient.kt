@@ -45,8 +45,7 @@ class KtorHttpClient() : KoinComponent {
             pipelining = true
         }
 
-        val token = runBlocking { sessionManager.getJwtToken().first() }
-        Log.d("TOKEN: ", token)
+       
         install(Auth) {
             bearer {
                 loadTokens { BearerTokens(token, "") }
